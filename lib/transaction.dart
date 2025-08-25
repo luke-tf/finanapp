@@ -2,19 +2,28 @@
 
 import 'package:hive/hive.dart';
 
-part 'transaction.g.dart'; // AQUI: o gerador vai criar esse arquivo
+part 'transaction.g.dart';
 
-// AQUI: Usamos a anotação do Hive para gerar um adaptador
 @HiveType(typeId: 0)
 class Transaction extends HiveObject {
   @HiveField(0)
-  String title = '';
+  late String title;
+
   @HiveField(1)
-  double value = 0.0;
+  late double value;
+
   @HiveField(2)
-  DateTime date = DateTime.now();
+  late DateTime date;
+
   @HiveField(3)
-  bool isExpense = true;
+  late bool isExpense;
+
+  Transaction({
+    this.title = '',
+    this.value = 0.0,
+    DateTime? date,
+    this.isExpense = true,
+  }) : date = date ?? DateTime.now();
 
   @override
   String toString() {

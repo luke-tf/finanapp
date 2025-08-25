@@ -6,7 +6,7 @@ import 'package:finanapp/transaction.dart';
 
 class TransactionList extends StatelessWidget {
   final List<Transaction> transactions;
-  final Function deleteTx;
+  final Function(int) deleteTx;
 
   const TransactionList({
     super.key,
@@ -16,19 +16,22 @@ class TransactionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: transactions.map((transaction) {
+    return ListView.builder(
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        final transaction = transactions[index];
         return TransactionItem(
-          // O key do Hive é o ID do item
-          id: transaction.key.toString(),
+          key: ValueKey(
+            transaction.key,
+          ), // Usa ValueKey para melhor performance
+          id: transaction.key ?? -1, // Usa -1 como fallback se key for null
           title: transaction.title,
           value: transaction.value,
           date: transaction.date,
           isExpense: transaction.isExpense,
-          // Agora passamos o key do Hive para a função de deleção
-          deleteTx: () => deleteTx(transaction.key),
+          deleteTx: deleteTx,
         );
-      }).toList(),
+      },
     );
   }
 }
