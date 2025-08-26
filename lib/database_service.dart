@@ -61,9 +61,7 @@ class DatabaseService {
 
       // Filtra transações com dados válidos
       return transactions.where((transaction) {
-        return transaction.title.isNotEmpty &&
-            transaction.value >= 0 &&
-            transaction.date != null;
+        return transaction.title.isNotEmpty && transaction.value >= 0;
       }).toList();
     } catch (e) {
       print('Erro ao buscar transações: $e');
