@@ -1,7 +1,7 @@
 // database_service.dart
 
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:finanapp/transaction.dart';
+import 'package:finanapp/models/transaction.dart';
 
 class DatabaseService {
   static Box<Transaction>? _transactionBox;

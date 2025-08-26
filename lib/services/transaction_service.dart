@@ -1,7 +1,7 @@
 // Updated transaction_service.dart
 
-import 'package:finanapp/database_service.dart';
-import 'package:finanapp/transaction.dart';
+import 'package:finanapp/services/database_service.dart';
+import 'package:finanapp/models/transaction.dart';
 import 'package:finanapp/services/error_handler.dart';
 
 class TransactionService {

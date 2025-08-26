@@ -1,7 +1,7 @@
 // transaction_provider.dart
 
 import 'package:flutter/foundation.dart';
-import 'package:finanapp/transaction.dart';
+import 'package:finanapp/models/transaction.dart';
 import 'package:finanapp/services/transaction_service.dart';
 import 'package:finanapp/services/error_handler.dart';
 

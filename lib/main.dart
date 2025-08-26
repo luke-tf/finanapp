@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:finanapp/new_transaction_form.dart';
-import 'package:finanapp/transaction_list.dart';
-import 'package:finanapp/balance_display.dart';
-import 'package:finanapp/database_service.dart';
+import 'package:finanapp/widgets/transaction/new_transaction_form.dart';
+import 'package:finanapp/widgets/transaction/transaction_list.dart';
+import 'package:finanapp/widgets/balance/balance_display.dart';
+import 'package:finanapp/services/database_service.dart';
 import 'package:finanapp/providers/transaction_provider.dart';
 import 'package:finanapp/services/error_handler.dart';
 

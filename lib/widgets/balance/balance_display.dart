@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:finanapp/balance_card.dart';
-import 'package:finanapp/balance_image.dart';
+import 'package:finanapp/widgets/balance/balance_card.dart';
+import 'package:finanapp/widgets/balance/balance_image.dart';
 
 class BalanceDisplay extends StatelessWidget {
   final double currentBalance;
