@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:finanapp/utils/constants.dart';
 
 class TransactionItem extends StatelessWidget {
   final int id;
@@ -26,12 +27,12 @@ class TransactionItem extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirmar exclusão'),
+          title: Text(AppConstants.confirmDeleteTitle),
           content: Text('Deseja excluir a transação "$title"?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
+              child: Text(AppConstants.cancelButton),
             ),
             ElevatedButton(
               onPressed: () {
@@ -45,7 +46,7 @@ class TransactionItem extends StatelessWidget {
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Excluir'),
+              child: Text(AppConstants.deleteButton),
             ),
           ],
         );
@@ -59,16 +60,22 @@ class TransactionItem extends StatelessWidget {
     final String prefix = isExpense ? '-' : '+';
 
     return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      elevation: AppConstants.cardElevation,
+      margin: EdgeInsets.symmetric(
+        vertical: AppConstants.extraSmallPadding,
+        horizontal: AppConstants.smallPadding,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+      ),
       child: ListTile(
         leading: CircleAvatar(
-          radius: 25,
+          radius: AppConstants.defaultPadding + 9,
           backgroundColor: valueColor.withOpacity(0.1),
           child: Icon(
             isExpense ? Icons.remove : Icons.add,
             color: valueColor,
-            size: 20,
+            size: AppConstants.smallIconSize,
           ),
         ),
         title: Text(
@@ -78,26 +85,26 @@ class TransactionItem extends StatelessWidget {
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
         ),
         subtitle: Text(
-          DateFormat('dd/MM/yyyy').format(date),
+          DateFormat(AppConstants.dateFormat).format(date),
           style: Theme.of(context).textTheme.bodySmall,
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '$prefix R\$ ${value.toStringAsFixed(2)}',
+              '$prefix ${AppConstants.currencySymbol} ${value.toStringAsFixed(2)}',
               style: TextStyle(
                 color: valueColor,
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: AppConstants.transactionValueFontSize,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppConstants.smallPadding),
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => _showDeleteDialog(context),
               color: Colors.grey[600],
-              iconSize: 20,
+              iconSize: AppConstants.smallIconSize,
             ),
           ],
         ),

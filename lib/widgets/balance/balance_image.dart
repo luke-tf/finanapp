@@ -9,7 +9,7 @@ class BalanceImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: AppConstants.balanceImageHeight,
+      height: AppConstants.getBalanceImageHeight(context),
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(imagePath),

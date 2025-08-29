@@ -8,13 +8,15 @@ import 'package:finanapp/widgets/balance/balance_display.dart';
 import 'package:finanapp/services/database_service.dart';
 import 'package:finanapp/providers/transaction_provider.dart';
 import 'package:finanapp/services/error_handler.dart';
+import 'package:finanapp/utils/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    print('Iniciando inicialização do banco...');
+    print(AppConstants.bankInitializingMessage);
     await DatabaseService().initialize();
+    print(AppConstants.bankSuccessMessage);
     print('Banco inicializado com sucesso!');
     runApp(const FinanappApplication());
   } catch (e, stackTrace) {
@@ -29,7 +31,7 @@ Future<void> main() async {
               children: [
                 const Icon(Icons.error, size: 64, color: Colors.red),
                 const SizedBox(height: 16),
-                const Text('Erro ao inicializar aplicação'),
+                Text(AppConstants.initErrorMessage),
                 const SizedBox(height: 8),
                 Text('$e', textAlign: TextAlign.center),
               ],
@@ -53,7 +55,7 @@ class FinanappApplication extends StatelessWidget {
         // ProxyProvider for providers that depend on others
       ],
       child: MaterialApp(
-        title: 'Finanapp',
+        title: AppConstants.appName,
         theme: ThemeData(
           primarySwatch: Colors.blue,
           useMaterial3: true,
@@ -111,10 +113,11 @@ class _MyHomePageState extends State<MyHomePage> {
     if (mounted) {
       if (success) {
         Navigator.of(context).pop(); // Close the modal
-        final transactionType = isExpense ? 'despesa' : 'receita';
         ErrorHandler.showSuccessSnackBar(
           context,
-          '${transactionType.toUpperCase()} adicionada com sucesso!',
+          isExpense
+              ? AppConstants.expenseAddedSuccess
+              : AppConstants.incomeAddedSuccess,
         );
       } else {
         // Error handling is managed by the provider
@@ -135,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (success) {
         ErrorHandler.showSuccessSnackBar(
           context,
-          'Transação removida com sucesso!',
+          AppConstants.transactionRemovedSuccess,
         );
       } else {
         // Error handling is managed by the provider
@@ -167,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Finanapp'),
+        title: Text(AppConstants.appName),
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -178,7 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: () {
               context.read<TransactionProvider>().refreshTransactions();
             },
-            tooltip: 'Atualizar',
+            tooltip: AppConstants.refreshTooltip,
           ),
         ],
       ),
@@ -192,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Carregando transações...'),
+                  Text(AppConstants.loadingTransactions),
                 ],
               ),
             );
@@ -211,7 +214,9 @@ class _MyHomePageState extends State<MyHomePage> {
           return RefreshIndicator(
             onRefresh: () => transactionProvider.refreshTransactions(),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(
+                AppConstants.getResponsivePadding(context),
+              ),
               child: Column(
                 children: [
                   BalanceDisplay(
@@ -219,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     getBalanceImagePath: () =>
                         transactionProvider.balanceImagePath,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppConstants.getResponsivePadding(context)),
                   Expanded(
                     child: transactionProvider.hasTransactions
                         ? TransactionList(
@@ -240,7 +245,7 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: transactionProvider.isAddingTransaction
                 ? null
                 : _showTransactionForm,
-            tooltip: 'Adicionar transação',
+            tooltip: AppConstants.addTransactionTooltip,
             child: transactionProvider.isAddingTransaction
                 ? const SizedBox(
                     width: 20,
@@ -271,7 +276,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Ops! Algo deu errado',
+              AppConstants.errorTitle,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -290,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ElevatedButton.icon(
                   onPressed: onRetry,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Tentar Novamente'),
+                  label: Text(AppConstants.retryButton),
                 ),
                 if (error.details != null) ...[
                   const SizedBox(width: 16),
@@ -300,7 +305,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       error,
                       onRetry: onRetry,
                     ),
-                    child: const Text('Ver Detalhes'),
+                    child: Text(AppConstants.detailsButton),
                   ),
                 ],
               ],
@@ -316,28 +321,32 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.receipt_long, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
+          Icon(
+            Icons.receipt_long,
+            size: AppConstants.getResponsiveIconSize(context),
+            color: Colors.grey.shade300,
+          ),
+          SizedBox(height: AppConstants.getResponsivePadding(context)),
           Text(
-            'Nenhuma transação ainda',
+            AppConstants.noTransactionsTitle,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: Colors.grey.shade600,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: AppConstants.smallPadding),
           Text(
-            'Comece adicionando sua primeira transação\ntocando no botão + abaixo',
+            AppConstants.noTransactionsMessage,
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
             ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade500),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: AppConstants.getResponsivePadding(context) * 1.5),
           ElevatedButton.icon(
             onPressed: _showTransactionForm,
             icon: const Icon(Icons.add),
-            label: const Text('Primeira Transação'),
+            label: Text(AppConstants.firstTransactionButton),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),

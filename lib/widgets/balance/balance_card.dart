@@ -11,23 +11,21 @@ class BalanceCard extends StatelessWidget {
     return Card(
       color: Colors.blueAccent,
       child: Padding(
-        padding: EdgeInsets.all(AppConstants.defaultPadding),
+        padding: EdgeInsets.all(AppConstants.getResponsivePadding(context)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               AppConstants.currentBalanceLabel,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: AppConstants.balanceLabelFontSize,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.white),
             ),
             SizedBox(height: 10),
             Text(
               'R\$ ${balance.toStringAsFixed(2)}',
-              style: TextStyle(
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: Colors.white,
-                fontSize: AppConstants.balanceValueFontSize,
                 fontWeight: FontWeight.bold,
               ),
             ),

@@ -107,6 +107,24 @@ class AppConstants {
 
   // Date Format
   static const String dateFormat = 'dd/MM/yyyy';
+
+  // Responsive helpers
+  static double getResponsivePadding(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 600) return largePadding; // Tablet/Desktop
+    return defaultPadding; // Mobile
+  }
+
+  static double getResponsiveIconSize(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width > 600) return 100.0; // Tablet/Desktop
+    return largeIconSize; // Mobile (80)
+  }
+
+  static double getBalanceImageHeight(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    return height * 0.2; // 20% of screen height, max 200, min 120
+  }
 }
 
 // Color Constants (if you want to add custom colors later)

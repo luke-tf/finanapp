@@ -100,10 +100,12 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
 
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-            left: 20,
-            right: 20,
-            top: 20,
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom +
+                AppConstants.largePadding,
+            left: AppConstants.largePadding,
+            right: AppConstants.largePadding,
+            top: AppConstants.largePadding,
           ),
           child: Form(
             key: _formKey,
@@ -128,7 +130,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppConstants.largePadding),
 
                 // Title Field
                 TextFormField(
@@ -162,7 +164,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppConstants.defaultPadding),
 
                 // Value Field
                 TextFormField(
@@ -202,7 +204,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppConstants.largePadding),
 
                 // Transaction Type Selection
                 Container(
@@ -219,7 +221,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w500),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: AppConstants.smallPadding * 1.5),
                       Row(
                         children: [
                           Expanded(
@@ -258,7 +260,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: AppConstants.smallPadding),
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
@@ -302,7 +304,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: AppConstants.largePadding * 1.2),
 
                 // Action Buttons
                 Row(
@@ -313,11 +315,13 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                         icon: const Icon(Icons.clear),
                         label: Text(AppConstants.clearButton),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: EdgeInsets.symmetric(
+                            vertical: AppConstants.defaultPadding,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: AppConstants.defaultPadding),
                     Expanded(
                       child: OutlinedButton(
                         onPressed: isLoading
@@ -325,11 +329,13 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                             : () => Navigator.of(context).pop(),
                         child: Text(AppConstants.cancelButton),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: EdgeInsets.symmetric(
+                            vertical: AppConstants.defaultPadding,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: AppConstants.defaultPadding),
                     Expanded(
                       flex: 2,
                       child: ElevatedButton.icon(
@@ -362,12 +368,12 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: AppConstants.smallPadding + 2),
 
                 // Helper text
                 if (transactionProvider.hasTransactions)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: EdgeInsets.only(top: AppConstants.smallPadding),
                     child: Text(
                       'Saldo atual: R\$ ${transactionProvider.currentBalance.toStringAsFixed(2)}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(

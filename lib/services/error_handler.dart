@@ -1,6 +1,7 @@
 // error_handler.dart
 
 import 'package:flutter/material.dart';
+import 'package:finanapp/utils/constants.dart';
 
 enum ErrorType { validation, database, network, unknown }
 
@@ -75,7 +76,7 @@ class ErrorHandler {
   static void showErrorSnackBar(
     BuildContext context,
     AppError error, {
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = AppConstants.snackBarDuration,
   }) {
     if (!context.mounted) return;
 
@@ -107,7 +108,7 @@ class ErrorHandler {
         action: error.type == ErrorType.validation
             ? null
             : SnackBarAction(
-                label: 'Detalhes',
+                label: AppConstants.detailsButton,
                 textColor: Colors.white,
                 onPressed: () => _showErrorDetails(context, error),
               ),
@@ -119,7 +120,7 @@ class ErrorHandler {
   static void showSuccessSnackBar(
     BuildContext context,
     String message, {
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = AppConstants.successSnackBarDuration,
   }) {
     if (!context.mounted) return;
 
@@ -173,7 +174,7 @@ class ErrorHandler {
                 size: 24,
               ),
               const SizedBox(width: 12),
-              const Text('Erro'),
+              Text(AppConstants.errorTitle),
             ],
           ),
           content: Column(
@@ -184,7 +185,7 @@ class ErrorHandler {
               if (error.details != null) ...[
                 const SizedBox(height: 16),
                 ExpansionTile(
-                  title: const Text('Detalhes técnicos'),
+                  title: Text(AppConstants.detailsButton),
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -207,11 +208,11 @@ class ErrorHandler {
                   Navigator.of(context).pop();
                   onRetry();
                 },
-                child: const Text('Tentar Novamente'),
+                child: Text(AppConstants.retryButton),
               ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(AppConstants.confirmButton),
             ),
           ],
         );
@@ -250,10 +251,10 @@ class ErrorHandler {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Detalhes do Erro'),
+        title: Text(AppConstants.errorDetailsTitle),
         content: SingleChildScrollView(
           child: Text(
-            error.details ?? 'Nenhum detalhe disponível',
+            error.details ?? AppConstants.noDetailsAvailable,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
@@ -262,7 +263,7 @@ class ErrorHandler {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar'),
+            child: Text(AppConstants.closeAction),
           ),
         ],
       ),
