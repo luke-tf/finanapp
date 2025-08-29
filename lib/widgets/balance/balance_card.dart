@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:finanapp/utils/constants.dart';
 
 class BalanceCard extends StatelessWidget {
   final double balance;
@@ -10,20 +11,23 @@ class BalanceCard extends StatelessWidget {
     return Card(
       color: Colors.blueAccent,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(AppConstants.defaultPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Saldo Atual',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              AppConstants.currentBalanceLabel,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: AppConstants.balanceLabelFontSize,
+              ),
             ),
             SizedBox(height: 10),
             Text(
               'R\$ ${balance.toStringAsFixed(2)}',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 32,
+                fontSize: AppConstants.balanceValueFontSize,
                 fontWeight: FontWeight.bold,
               ),
             ),

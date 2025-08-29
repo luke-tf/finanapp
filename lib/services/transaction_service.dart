@@ -3,6 +3,7 @@
 import 'package:finanapp/services/database_service.dart';
 import 'package:finanapp/models/transaction.dart';
 import 'package:finanapp/services/error_handler.dart';
+import 'package:finanapp/utils/constants.dart';
 
 class TransactionService {
   final DatabaseService _databaseService = DatabaseService();
@@ -73,11 +74,11 @@ class TransactionService {
   // Get balance image path (pure function - no errors expected)
   String getBalanceImagePath(double balance) {
     if (balance < 0) {
-      return 'assets/images/porquinho_triste.png';
+      return AppConstants.sadPigImage;
     } else if (balance == 0) {
-      return 'assets/images/porquinho_neutro.png';
+      return AppConstants.neutralPigImage;
     } else {
-      return 'assets/images/porquinho_feliz.png';
+      return AppConstants.happyPigImage;
     }
   }
 
@@ -164,14 +165,14 @@ class TransactionService {
     // Title validation
     if (title.trim().isEmpty) {
       errors.add('O título não pode estar vazio');
-    } else if (title.trim().length > 100) {
+    } else if (title.trim().length > AppConstants.maxTitleLength) {
       errors.add('O título não pode ter mais que 100 caracteres');
     }
 
     // Value validation
     if (value <= 0) {
       errors.add('O valor deve ser maior que zero');
-    } else if (value > 999999999.99) {
+    } else if (value > AppConstants.maxTransactionValue) {
       errors.add('O valor é muito alto');
     }
 

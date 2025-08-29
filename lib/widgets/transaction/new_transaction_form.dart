@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:finanapp/providers/transaction_provider.dart';
+import 'package:finanapp/utils/constants.dart';
 
 class NewTransactionForm extends StatefulWidget {
   final Function(String, double, bool) addTx;
@@ -59,14 +60,14 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
           children: [
             Icon(Icons.warning, color: Colors.orange),
             SizedBox(width: 8),
-            Text('Atenção'),
+            Text(AppConstants.attentionTitle),
           ],
         ),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
+            child: Text(AppConstants.confirmButton),
           ),
         ],
       ),
@@ -114,7 +115,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Nova Transação',
+                      AppConstants.newTransactionTitle,
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
@@ -135,8 +136,8 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                   focusNode: _titleFocusNode,
                   enabled: !isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Título *',
-                    hintText: 'Ex: Compra no supermercado',
+                    labelText: AppConstants.titleFieldLabel,
+                    hintText: AppConstants.titleFieldHint,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -148,15 +149,15 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     counterText: '${_titleController.text.length}/100',
                   ),
                   textInputAction: TextInputAction.next,
-                  maxLength: 100,
+                  maxLength: AppConstants.maxTitleLength,
                   onChanged: (_) => setState(() {}), // Update counter
                   onFieldSubmitted: (_) => _valueFocusNode.requestFocus(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Por favor, insira um título';
+                      return AppConstants.titleRequiredError;
                     }
                     if (value.trim().length > 100) {
-                      return 'Título muito longo (máximo 100 caracteres)';
+                      return AppConstants.titleTooLongError;
                     }
                     return null;
                   },
@@ -169,13 +170,13 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                   focusNode: _valueFocusNode,
                   enabled: !isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Valor (R\$) *',
-                    hintText: '0,00',
+                    labelText: AppConstants.valueFieldLabel,
+                    hintText: AppConstants.valueFieldHint,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                     prefixIcon: const Icon(Icons.monetization_on),
-                    prefixText: 'R\$ ',
+                    prefixText: AppConstants.currencyPrefix,
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -184,19 +185,19 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                   onFieldSubmitted: (_) => _submitData(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Por favor, insira um valor';
+                      return AppConstants.valueRequiredError;
                     }
                     final doubleValue = double.tryParse(
                       value.replaceAll(',', '.'),
                     );
                     if (doubleValue == null) {
-                      return 'Por favor, insira um valor numérico válido';
+                      return AppConstants.valueInvalidError;
                     }
                     if (doubleValue <= 0) {
-                      return 'O valor deve ser maior que zero';
+                      return AppConstants.valueZeroError;
                     }
                     if (doubleValue > 999999999.99) {
-                      return 'Valor muito alto';
+                      return AppConstants.valueTooHighError;
                     }
                     return null;
                   },
@@ -214,7 +215,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Tipo de transação:',
+                        AppConstants.transactionTypeLabel,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w500),
                       ),
@@ -235,8 +236,8 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                                 ),
                               ),
                               child: RadioListTile<bool>(
-                                title: const Text('Despesa'),
-                                subtitle: const Text('Saída de dinheiro'),
+                                title: Text(AppConstants.expenseLabel),
+                                subtitle: Text(AppConstants.expenseSubtitle),
                                 secondary: Icon(
                                   Icons.trending_down,
                                   color: _isExpense ? Colors.red : Colors.grey,
@@ -272,8 +273,8 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                                 ),
                               ),
                               child: RadioListTile<bool>(
-                                title: const Text('Receita'),
-                                subtitle: const Text('Entrada de dinheiro'),
+                                title: Text(AppConstants.incomeLabel),
+                                subtitle: Text(AppConstants.incomeSubtitle),
                                 secondary: Icon(
                                   Icons.trending_up,
                                   color: !_isExpense
@@ -310,7 +311,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                       child: OutlinedButton.icon(
                         onPressed: isLoading ? null : _clearForm,
                         icon: const Icon(Icons.clear),
-                        label: const Text('Limpar'),
+                        label: Text(AppConstants.clearButton),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -322,7 +323,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                         onPressed: isLoading
                             ? null
                             : () => Navigator.of(context).pop(),
-                        child: const Text('Cancelar'),
+                        child: Text(AppConstants.cancelButton),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -345,7 +346,11 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                                 ),
                               )
                             : const Icon(Icons.save),
-                        label: Text(isLoading ? 'Salvando...' : 'Salvar'),
+                        label: Text(
+                          isLoading
+                              ? AppConstants.savingButton
+                              : AppConstants.saveButton,
+                        ),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: _isExpense

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:finanapp/utils/constants.dart';
 
 class BalanceImage extends StatelessWidget {
   final String imagePath;
@@ -8,7 +9,7 @@ class BalanceImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 150, // Define uma altura fixa para a imagem
+      height: AppConstants.balanceImageHeight,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(imagePath),
