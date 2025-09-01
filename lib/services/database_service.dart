@@ -2,7 +2,7 @@
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:finanapp/models/transaction.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 
 class DatabaseService {
   static Box<Transaction>? _transactionBox;
@@ -22,8 +22,11 @@ class DatabaseService {
     }
 
     try {
-      // Get a safe directory for the app
-      final appDocumentsDirectory = await getApplicationDocumentsDirectory();
+      print('--- EXECUTANDO A INICIALIZAÇÃO CORRETA DO BANCO DE DADOS ---');
+
+      // Pega um diretório seguro para o app usando o alias do import
+      final appDocumentsDirectory = await path_provider
+          .getApplicationDocumentsDirectory();
       final hivePath = '${appDocumentsDirectory.path}/hive_data';
 
       // Inicializa o Hive com Flutter e diretório personalizado
@@ -88,6 +91,25 @@ class DatabaseService {
       print('Transação adicionada: ${transaction.title}');
     } catch (e) {
       print('Erro ao adicionar transação: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateTransaction(Transaction transaction) async {
+    try {
+      // Validações antes de atualizar
+      if (transaction.key == null) {
+        throw Exception('Transação com key nula não pode ser atualizada');
+      }
+      if (transaction.title.isEmpty) {
+        throw Exception('Título não pode estar vazio');
+      }
+
+      // O método 'put' do Hive insere se a chave não existe ou atualiza se ela já existe.
+      await _box.put(transaction.key, transaction);
+      print('Transação atualizada: ${transaction.title}');
+    } catch (e) {
+      print('Erro ao atualizar transação: $e');
       rethrow;
     }
   }

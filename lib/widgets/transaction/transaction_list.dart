@@ -1,6 +1,8 @@
 // transaction_list.dart
 
 import 'package:flutter/material.dart';
+import 'package:animated_list_plus/animated_list_plus.dart';
+import 'package:finanapp/models/transaction.dart';
 import 'package:finanapp/widgets/transaction/transaction_item.dart';
 import 'package:finanapp/models/transaction.dart';
 
