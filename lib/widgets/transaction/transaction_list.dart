@@ -7,11 +7,13 @@ import 'package:finanapp/models/transaction.dart';
 class TransactionList extends StatelessWidget {
   final List<Transaction> transactions;
   final Function(int) deleteTx;
+  final Function(int) editTx;
 
   const TransactionList({
     super.key,
     required this.transactions,
     required this.deleteTx,
+    required this.editTx,
   });
 
   @override
@@ -30,6 +32,7 @@ class TransactionList extends StatelessWidget {
           date: transaction.date,
           isExpense: transaction.isExpense,
           deleteTx: deleteTx,
+          editTx: editTx,
         );
       },
     );

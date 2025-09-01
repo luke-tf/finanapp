@@ -11,6 +11,7 @@ class TransactionItem extends StatelessWidget {
   final DateTime date;
   final bool isExpense;
   final Function(int) deleteTx;
+  final Function(int) editTx; // Added edit callback
 
   const TransactionItem({
     super.key,
@@ -20,6 +21,7 @@ class TransactionItem extends StatelessWidget {
     required this.date,
     required this.isExpense,
     required this.deleteTx,
+    required this.editTx, // Added required parameter
   });
 
   void _showDeleteDialog(BuildContext context) {
@@ -38,7 +40,6 @@ class TransactionItem extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
                 if (id >= 0) {
-                  // Verifica se não é o valor de fallback
                   deleteTx(id);
                 }
               },
@@ -68,45 +69,53 @@ class TransactionItem extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: AppConstants.defaultPadding + 9,
-          backgroundColor: valueColor.withOpacity(0.1),
-          child: Icon(
-            isExpense ? Icons.remove : Icons.add,
-            color: valueColor,
-            size: AppConstants.smallIconSize,
+      child: InkWell(
+        onLongPress: () {
+          if (id >= 0) {
+            editTx(id); // Call edit function on long press
+          }
+        },
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        child: ListTile(
+          leading: CircleAvatar(
+            radius: AppConstants.defaultPadding + 9, // 25
+            backgroundColor: valueColor.withOpacity(0.1),
+            child: Icon(
+              isExpense ? Icons.remove : Icons.add,
+              color: valueColor,
+              size: AppConstants.smallIconSize,
+            ),
           ),
-        ),
-        title: Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text(
-          DateFormat(AppConstants.dateFormat).format(date),
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$prefix ${AppConstants.currencySymbol} ${value.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: valueColor,
-                fontWeight: FontWeight.bold,
-                fontSize: AppConstants.transactionValueFontSize,
+          title: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Text(
+            DateFormat(AppConstants.dateFormat).format(date),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$prefix ${AppConstants.currencySymbol} ${value.toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: valueColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: AppConstants.transactionValueFontSize,
+                ),
               ),
-            ),
-            SizedBox(width: AppConstants.smallPadding),
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _showDeleteDialog(context),
-              color: Colors.grey[600],
-              iconSize: AppConstants.smallIconSize,
-            ),
-          ],
+              SizedBox(width: AppConstants.smallPadding),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => _showDeleteDialog(context),
+                color: Colors.grey[600],
+                iconSize: AppConstants.smallIconSize,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -2,6 +2,7 @@
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:finanapp/models/transaction.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DatabaseService {
   static Box<Transaction>? _transactionBox;
@@ -21,8 +22,12 @@ class DatabaseService {
     }
 
     try {
-      // Inicializa o Hive com Flutter
-      await Hive.initFlutter();
+      // Get a safe directory for the app
+      final appDocumentsDirectory = await getApplicationDocumentsDirectory();
+      final hivePath = '${appDocumentsDirectory.path}/hive_data';
+
+      // Inicializa o Hive com Flutter e diretório personalizado
+      await Hive.initFlutter(hivePath);
 
       // Registra o adapter apenas uma vez
       if (!Hive.isAdapterRegistered(0)) {
@@ -38,7 +43,7 @@ class DatabaseService {
       _transactionBox = await Hive.openBox<Transaction>('transactions');
       _isInitialized = true;
 
-      print('DatabaseService inicializado com sucesso');
+      print('DatabaseService inicializado com sucesso em: $hivePath');
     } catch (e) {
       print('Erro ao inicializar DatabaseService: $e');
       _isInitialized = false;

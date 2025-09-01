@@ -150,6 +150,19 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void _editTransaction(int key) {
+    // TODO: Navigate to edit screen
+    print('Edit transaction with key: $key');
+
+    // For now, just show a snackbar to confirm long press works
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Long press detected! Transaction key: $key'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _showTransactionForm() {
     showModalBottomSheet(
       context: context,
@@ -230,6 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ? TransactionList(
                             transactions: transactionProvider.transactions,
                             deleteTx: _deleteTransaction,
+                            editTx: _editTransaction,
                           )
                         : _buildEmptyTransactionsWidget(),
                   ),
