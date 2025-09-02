@@ -1,15 +1,13 @@
-// edit_transaction_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart'; // Keep if you use it, though not directly for editing in this snippet
 import 'package:finanapp/models/transaction.dart';
 import 'package:finanapp/providers/transaction_provider.dart';
 import 'package:finanapp/utils/constants.dart';
+import 'package:finanapp/services/error_handler.dart'; // Import ErrorHandler
 
 class EditTransactionScreen extends StatefulWidget {
   final Transaction transaction;
-
   const EditTransactionScreen({super.key, required this.transaction});
 
   @override
@@ -21,19 +19,20 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
   late TextEditingController _titleController;
   late TextEditingController _valueController;
   late bool _isExpense;
-  late DateTime _selectedDate;
+  late DateTime
+  _selectedDate; // You're not using this yet, but it's good to keep if you plan to add date editing
+
+  bool _isSaving = false; // Add a state variable for saving
 
   @override
   void initState() {
     super.initState();
-
-    // Pre-fill with existing transaction data
     _titleController = TextEditingController(text: widget.transaction.title);
     _valueController = TextEditingController(
       text: widget.transaction.value.toStringAsFixed(2),
     );
     _isExpense = widget.transaction.isExpense;
-    _selectedDate = widget.transaction.date;
+    _selectedDate = widget.transaction.date; // Initialize with existing date
   }
 
   @override
@@ -48,26 +47,56 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       return;
     }
 
+    setState(() {
+      _isSaving = true; // Set saving state to true
+    });
+
     final enteredTitle = _titleController.text.trim();
     final enteredValue = double.tryParse(
       _valueController.text.replaceAll(',', '.'),
     );
 
     if (enteredTitle.isEmpty || enteredValue == null || enteredValue <= 0) {
-      _showErrorDialog('Por favor, preencha todos os campos corretamente');
+      _showErrorDialog(AppConstants.fillAllFieldsError);
+      setState(() {
+        _isSaving = false; // Reset saving state
+      });
       return;
     }
 
-    // TODO: Implement update transaction logic
-    // For now, just show success and go back
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Transação atualizada com sucesso!'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    // CORRECTED: Update the properties of the *existing* widget.transaction object
+    // directly. Hive will then use its key to find and update it in the box.
+    widget.transaction.title = enteredTitle;
+    widget.transaction.value = enteredValue;
+    widget.transaction.isExpense = _isExpense;
+    widget.transaction.date =
+        _selectedDate; // Update the date as well, even if not editing it yet
 
-    Navigator.of(context).pop();
+    final provider = context.read<TransactionProvider>();
+    final success = await provider.updateTransaction(
+      widget.transaction,
+    ); // Pass the modified existing object
+
+    if (mounted) {
+      setState(() {
+        _isSaving = false; // Reset saving state
+      });
+
+      if (success) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Transação atualizada com sucesso!', // You might want to add this to AppConstants
+        );
+        Navigator.of(context).pop();
+      } else {
+        if (provider.error != null) {
+          ErrorHandler.showErrorSnackBar(context, provider.error!);
+          provider.clearError();
+        } else {
+          _showErrorDialog('Falha ao atualizar a transação.');
+        }
+      }
+    }
   }
 
   void _showErrorDialog(String message) {
@@ -93,6 +122,23 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     );
   }
 
+  // You might want to add a date picker functionality here later
+  // void _presentDatePicker() {
+  //   showDatePicker(
+  //     context: context,
+  //     initialDate: _selectedDate,
+  //     firstDate: DateTime(2020),
+  //     lastDate: DateTime.now(),
+  //   ).then((pickedDate) {
+  //     if (pickedDate == null) {
+  //       return;
+  //     }
+  //     setState(() {
+  //       _selectedDate = pickedDate;
+  //     });
+  //   });
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,280 +153,320 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: EdgeInsets.all(AppConstants.getResponsivePadding(context)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Transaction Info Card
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.borderRadius,
+      body: SingleChildScrollView(
+        // Wrap with SingleChildScrollView to prevent overflow
+        child: Form(
+          key: _formKey,
+          child: Padding(
+            padding: EdgeInsets.all(AppConstants.getResponsivePadding(context)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(AppConstants.defaultPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Informações da Transação',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
+                  child: Padding(
+                    padding: EdgeInsets.all(AppConstants.defaultPadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Informações da Transação',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
+                              ),
                         ),
-                      ),
-                      SizedBox(height: AppConstants.defaultPadding),
-
-                      // Title Field
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: InputDecoration(
-                          labelText: AppConstants.titleFieldLabel,
-                          hintText: AppConstants.titleFieldHint,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppConstants.borderRadius,
+                        SizedBox(height: AppConstants.defaultPadding),
+                        TextFormField(
+                          controller: _titleController,
+                          enabled: !_isSaving, // Disable when saving
+                          decoration: InputDecoration(
+                            labelText: AppConstants.titleFieldLabel,
+                            hintText: AppConstants.titleFieldHint,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppConstants.borderRadius,
+                              ),
+                            ),
+                            prefixIcon: Icon(
+                              _isExpense
+                                  ? Icons.shopping_cart
+                                  : Icons.account_balance_wallet,
                             ),
                           ),
-                          prefixIcon: Icon(
-                            _isExpense
-                                ? Icons.shopping_cart
-                                : Icons.account_balance_wallet,
-                          ),
+                          maxLength: AppConstants.maxTitleLength,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return AppConstants.titleRequiredError;
+                            }
+                            if (value.trim().length >
+                                AppConstants.maxTitleLength) {
+                              return AppConstants.titleTooLongError;
+                            }
+                            return null;
+                          },
                         ),
-                        maxLength: AppConstants.maxTitleLength,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return AppConstants.titleRequiredError;
-                          }
-                          if (value.trim().length >
-                              AppConstants.maxTitleLength) {
-                            return AppConstants.titleTooLongError;
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: AppConstants.defaultPadding),
-
-                      // Value Field
-                      TextFormField(
-                        controller: _valueController,
-                        decoration: InputDecoration(
-                          labelText: AppConstants.valueFieldLabel,
-                          hintText: AppConstants.valueFieldHint,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppConstants.borderRadius,
+                        SizedBox(height: AppConstants.defaultPadding),
+                        TextFormField(
+                          controller: _valueController,
+                          enabled: !_isSaving, // Disable when saving
+                          decoration: InputDecoration(
+                            labelText: AppConstants.valueFieldLabel,
+                            hintText: AppConstants.valueFieldHint,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppConstants.borderRadius,
+                              ),
                             ),
+                            prefixIcon: const Icon(Icons.monetization_on),
+                            prefixText: AppConstants.currencyPrefix,
                           ),
-                          prefixIcon: const Icon(Icons.monetization_on),
-                          prefixText: AppConstants.currencyPrefix,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return AppConstants.valueRequiredError;
+                            }
+                            final doubleValue = double.tryParse(
+                              value.replaceAll(',', '.'),
+                            );
+                            if (doubleValue == null) {
+                              return AppConstants.valueInvalidError;
+                            }
+                            if (doubleValue <= 0) {
+                              return AppConstants.valueZeroError;
+                            }
+                            if (doubleValue >
+                                AppConstants.maxTransactionValue) {
+                              return AppConstants.valueTooHighError;
+                            }
+                            return null;
+                          },
                         ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return AppConstants.valueRequiredError;
-                          }
-                          final doubleValue = double.tryParse(
-                            value.replaceAll(',', '.'),
-                          );
-                          if (doubleValue == null) {
-                            return AppConstants.valueInvalidError;
-                          }
-                          if (doubleValue <= 0) {
-                            return AppConstants.valueZeroError;
-                          }
-                          if (doubleValue > AppConstants.maxTransactionValue) {
-                            return AppConstants.valueTooHighError;
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
+                        // If you add date picking, add it here
+                        // SizedBox(height: AppConstants.defaultPadding),
+                        // Row(
+                        //   children: [
+                        //     Expanded(
+                        //       child: Text(
+                        //         'Data Selecionada: ${DateFormat(AppConstants.dateFormat).format(_selectedDate)}',
+                        //       ),
+                        //     ),
+                        //     TextButton(
+                        //       onPressed: _isSaving ? null : _presentDatePicker,
+                        //       child: const Text('Selecionar Data'),
+                        //     ),
+                        //   ],
+                        // ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: AppConstants.defaultPadding),
-
-              // Transaction Type Card
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.borderRadius,
+                SizedBox(height: AppConstants.defaultPadding),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      AppConstants.borderRadius,
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(AppConstants.defaultPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppConstants.transactionTypeLabel,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: AppConstants.smallPadding),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _isExpense = true),
-                              child: Container(
-                                padding: EdgeInsets.all(
-                                  AppConstants.defaultPadding,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _isExpense
-                                      ? Colors.red.shade100
-                                      : Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(
-                                    AppConstants.borderRadius,
+                  child: Padding(
+                    padding: EdgeInsets.all(AppConstants.defaultPadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppConstants.transactionTypeLabel,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: AppConstants.smallPadding),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: _isSaving
+                                    ? null
+                                    : () => setState(() => _isExpense = true),
+                                child: Container(
+                                  padding: EdgeInsets.all(
+                                    AppConstants.defaultPadding,
                                   ),
-                                  border: Border.all(
+                                  decoration: BoxDecoration(
                                     color: _isExpense
-                                        ? Colors.red
-                                        : Colors.grey.shade300,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.trending_down,
+                                        ? Colors.red.shade100
+                                        : Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(
+                                      AppConstants.borderRadius,
+                                    ),
+                                    border: Border.all(
                                       color: _isExpense
                                           ? Colors.red
-                                          : Colors.grey,
-                                      size: 32,
+                                          : Colors.grey.shade300,
+                                      width: 2,
                                     ),
-                                    SizedBox(height: AppConstants.smallPadding),
-                                    Text(
-                                      AppConstants.expenseLabel,
-                                      style: TextStyle(
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.trending_down,
                                         color: _isExpense
                                             ? Colors.red
                                             : Colors.grey,
-                                        fontWeight: FontWeight.bold,
+                                        size: 32,
                                       ),
-                                    ),
-                                    Text(
-                                      AppConstants.expenseSubtitle,
-                                      style: TextStyle(
-                                        color: _isExpense
-                                            ? Colors.red.shade700
-                                            : Colors.grey,
-                                        fontSize: 12,
+                                      SizedBox(
+                                        height: AppConstants.smallPadding,
                                       ),
-                                    ),
-                                  ],
+                                      Text(
+                                        AppConstants.expenseLabel,
+                                        style: TextStyle(
+                                          color: _isExpense
+                                              ? Colors.red
+                                              : Colors.grey,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        AppConstants.expenseSubtitle,
+                                        style: TextStyle(
+                                          color: _isExpense
+                                              ? Colors.red.shade700
+                                              : Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(width: AppConstants.defaultPadding),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _isExpense = false),
-                              child: Container(
-                                padding: EdgeInsets.all(
-                                  AppConstants.defaultPadding,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: !_isExpense
-                                      ? Colors.green.shade100
-                                      : Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(
-                                    AppConstants.borderRadius,
+                            SizedBox(width: AppConstants.defaultPadding),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: _isSaving
+                                    ? null
+                                    : () => setState(() => _isExpense = false),
+                                child: Container(
+                                  padding: EdgeInsets.all(
+                                    AppConstants.defaultPadding,
                                   ),
-                                  border: Border.all(
+                                  decoration: BoxDecoration(
                                     color: !_isExpense
-                                        ? Colors.green
-                                        : Colors.grey.shade300,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.trending_up,
+                                        ? Colors.green.shade100
+                                        : Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(
+                                      AppConstants.borderRadius,
+                                    ),
+                                    border: Border.all(
                                       color: !_isExpense
                                           ? Colors.green
-                                          : Colors.grey,
-                                      size: 32,
+                                          : Colors.grey.shade300,
+                                      width: 2,
                                     ),
-                                    SizedBox(height: AppConstants.smallPadding),
-                                    Text(
-                                      AppConstants.incomeLabel,
-                                      style: TextStyle(
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.trending_up,
                                         color: !_isExpense
                                             ? Colors.green
                                             : Colors.grey,
-                                        fontWeight: FontWeight.bold,
+                                        size: 32,
                                       ),
-                                    ),
-                                    Text(
-                                      AppConstants.incomeSubtitle,
-                                      style: TextStyle(
-                                        color: !_isExpense
-                                            ? Colors.green.shade700
-                                            : Colors.grey,
-                                        fontSize: 12,
+                                      SizedBox(
+                                        height: AppConstants.smallPadding,
                                       ),
-                                    ),
-                                  ],
+                                      Text(
+                                        AppConstants.incomeLabel,
+                                        style: TextStyle(
+                                          color: !_isExpense
+                                              ? Colors.green
+                                              : Colors.grey,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        AppConstants.incomeSubtitle,
+                                        style: TextStyle(
+                                          color: !_isExpense
+                                              ? Colors.green.shade700
+                                              : Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-
-              const Spacer(),
-
-              // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: AppConstants.defaultPadding,
+                SizedBox(height: AppConstants.defaultPadding), // Add some space
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isSaving
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: AppConstants.defaultPadding,
+                          ),
+                        ),
+                        child: Text(AppConstants.cancelButton),
+                      ),
+                    ),
+                    SizedBox(width: AppConstants.defaultPadding),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        onPressed: _isSaving ? null : _saveChanges,
+                        icon: _isSaving
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Icon(Icons.save),
+                        label: Text(
+                          _isSaving
+                              ? AppConstants.savingButton
+                              : AppConstants.saveButton,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: AppConstants.defaultPadding,
+                          ),
+                          backgroundColor: _isExpense
+                              ? Colors.red
+                              : Colors.green,
+                          foregroundColor: Colors.white,
                         ),
                       ),
-                      child: Text(AppConstants.cancelButton),
                     ),
-                  ),
-                  SizedBox(width: AppConstants.defaultPadding),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: AppConstants.defaultPadding,
-                        ),
-                        backgroundColor: _isExpense ? Colors.red : Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: Text(AppConstants.saveButton),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: AppConstants.defaultPadding),
-            ],
+                  ],
+                ),
+                SizedBox(height: AppConstants.defaultPadding),
+              ],
+            ),
           ),
         ),
       ),

@@ -158,6 +158,21 @@ class TransactionService {
     }
   }
 
+  Future<void> updateTransaction(Transaction transaction) async {
+    try {
+      if (transaction.key == null) {
+        throw const AppError(
+          message: 'Transação inválida para atualização: chave ausente',
+          type: ErrorType.validation,
+        );
+      }
+      _validateTransactionInput(transaction.title, transaction.value);
+      await _databaseService.updateTransaction(transaction);
+    } catch (e) {
+      throw ErrorHandler.handleException(e);
+    }
+  }
+
   // Private validation method
   void _validateTransactionInput(String title, double value) {
     final errors = <String>[];

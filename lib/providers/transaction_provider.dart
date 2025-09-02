@@ -16,6 +16,8 @@ class TransactionProvider with ChangeNotifier {
   AppError? _error;
   bool _isAddingTransaction = false;
   bool _isDeletingTransaction = false;
+  bool _isUpdatingTransaction = false; // Add new state variable
+  bool get isUpdatingTransaction => _isUpdatingTransaction;
 
   // Public getters
   List<Transaction> get transactions => List.unmodifiable(_transactions);
@@ -188,6 +190,25 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> updateTransaction(Transaction transaction) async {
+    if (_isUpdatingTransaction) return false;
+    _isUpdatingTransaction = true;
+    notifyListeners();
+
+    try {
+      await _transactionService.updateTransaction(transaction);
+      await loadTransactions(); // Reload all transactions to reflect the change
+      _isUpdatingTransaction = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isUpdatingTransaction = false;
+      _error = e is AppError ? e : ErrorHandler.handleException(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Reset provider state (useful for logout/reset scenarios)
   void reset() {
     _transactions.clear();
@@ -195,6 +216,7 @@ class TransactionProvider with ChangeNotifier {
     _error = null;
     _isAddingTransaction = false;
     _isDeletingTransaction = false;
+    _isUpdatingTransaction = false; // Reset this too
     notifyListeners();
   }
 

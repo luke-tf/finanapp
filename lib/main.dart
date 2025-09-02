@@ -9,6 +9,7 @@ import 'package:finanapp/services/database_service.dart';
 import 'package:finanapp/providers/transaction_provider.dart';
 import 'package:finanapp/services/error_handler.dart';
 import 'package:finanapp/utils/constants.dart';
+import 'package:finanapp/screens/edit_transaction_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,6 @@ Future<void> main() async {
     print(AppConstants.bankInitializingMessage);
     await DatabaseService().initialize();
     print(AppConstants.bankSuccessMessage);
-    print('Banco inicializado com sucesso!');
     runApp(const FinanappApplication());
   } catch (e, stackTrace) {
     print('ERRO na inicialização: $e');
@@ -151,16 +151,32 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _editTransaction(int key) {
-    // TODO: Navigate to edit screen
     print('Edit transaction with key: $key');
+    final provider = context.read<TransactionProvider>();
+    try {
+      final transactionToEdit = provider.transactions.firstWhere(
+        (tx) => tx.key == key,
+      );
 
-    // For now, just show a snackbar to confirm long press works
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Long press detected! Transaction key: $key'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      // CORRECTED: Use Navigator.of(context).push with MaterialPageRoute
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (ctx) =>
+              EditTransactionScreen(transaction: transactionToEdit),
+        ),
+      );
+    } catch (e) {
+      // This can happen if the transaction is deleted just before editing.
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          AppError(
+            message: 'Transaction not found. It may have been deleted.',
+            type: ErrorType.unknown,
+          ),
+        );
+      }
+    }
   }
 
   void _showTransactionForm() {
