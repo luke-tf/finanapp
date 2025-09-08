@@ -1,12 +1,12 @@
-// main.dart - Updated with Provider
+// main.dart - Updated with BLoC
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finanapp/widgets/transaction/new_transaction_form.dart';
 import 'package:finanapp/widgets/transaction/transaction_list.dart';
 import 'package:finanapp/widgets/balance/balance_display.dart';
 import 'package:finanapp/services/database_service.dart';
-import 'package:finanapp/providers/transaction_provider.dart';
+import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
 import 'package:finanapp/services/error_handler.dart';
 import 'package:finanapp/utils/constants.dart';
 import 'package:finanapp/screens/edit_transaction_screen.dart';
@@ -48,12 +48,8 @@ class FinanappApplication extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => TransactionProvider()),
-        // You can add more providers here in the future
-        // ProxyProvider for providers that depend on others
-      ],
+    return BlocProvider(
+      create: (context) => TransactionBloc()..add(const LoadTransactions()),
       child: MaterialApp(
         title: AppConstants.appName,
         theme: ThemeData(
@@ -88,93 +84,39 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  @override
-  void initState() {
-    super.initState();
-    // Load transactions when the widget initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TransactionProvider>().loadTransactions();
-    });
-  }
-
-  void _addNewTransaction(
-    String txTitle,
-    double txValue,
-    bool isExpense,
-  ) async {
-    final provider = context.read<TransactionProvider>();
-
-    final success = await provider.addTransaction(
-      title: txTitle,
-      value: txValue,
-      isExpense: isExpense,
-    );
-
-    if (mounted) {
-      if (success) {
-        Navigator.of(context).pop(); // Close the modal
-        ErrorHandler.showSuccessSnackBar(
-          context,
-          isExpense
-              ? AppConstants.expenseAddedSuccess
-              : AppConstants.incomeAddedSuccess,
-        );
-      } else {
-        // Error handling is managed by the provider
-        if (provider.error != null) {
-          ErrorHandler.showErrorSnackBar(context, provider.error!);
-          provider.clearError();
-        }
-      }
-    }
-  }
-
-  void _deleteTransaction(int key) async {
-    final provider = context.read<TransactionProvider>();
-
-    final success = await provider.deleteTransaction(key);
-
-    if (mounted) {
-      if (success) {
-        ErrorHandler.showSuccessSnackBar(
-          context,
-          AppConstants.transactionRemovedSuccess,
-        );
-      } else {
-        // Error handling is managed by the provider
-        if (provider.error != null) {
-          ErrorHandler.showErrorSnackBar(context, provider.error!);
-          provider.clearError();
-        }
-      }
-    }
+  void _deleteTransaction(int key) {
+    context.read<TransactionBloc>().add(DeleteTransaction(key: key));
   }
 
   void _editTransaction(int key) {
     print('Edit transaction with key: $key');
-    final provider = context.read<TransactionProvider>();
-    try {
-      final transactionToEdit = provider.transactions.firstWhere(
-        (tx) => tx.key == key,
-      );
 
-      // CORRECTED: Use Navigator.of(context).push with MaterialPageRoute
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) =>
-              EditTransactionScreen(transaction: transactionToEdit),
-        ),
-      );
-    } catch (e) {
-      // This can happen if the transaction is deleted just before editing.
-      if (mounted) {
-        ErrorHandler.showErrorSnackBar(
-          context,
-          AppError(
-            message: 'Transaction not found. It may have been deleted.',
-            type: ErrorType.unknown,
+    final state = context.read<TransactionBloc>().state;
+    if (state is TransactionLoaded) {
+      try {
+        final transactionToEdit = state.displayTransactions.firstWhere(
+          (tx) => tx.key == key,
+        );
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => BlocProvider.value(
+              value: context.read<TransactionBloc>(),
+              child: EditTransactionScreen(transaction: transactionToEdit),
+            ),
           ),
         );
+      } catch (e) {
+        // This can happen if the transaction is deleted just before editing.
+        if (mounted) {
+          ErrorHandler.showErrorSnackBar(
+            context,
+            const AppError(
+              message: 'Transaction not found. It may have been deleted.',
+              type: ErrorType.unknown,
+            ),
+          );
+        }
       }
     }
   }
@@ -189,8 +131,10 @@ class _MyHomePageState extends State<MyHomePage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext modalContext) {
-        // Important: Pass the add function, not the context
-        return NewTransactionForm(_addNewTransaction);
+        return BlocProvider.value(
+          value: context.read<TransactionBloc>(),
+          child: const NewTransactionForm(),
+        );
       },
     );
   }
@@ -208,16 +152,105 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              context.read<TransactionProvider>().refreshTransactions();
+              context.read<TransactionBloc>().add(const RefreshTransactions());
             },
             tooltip: AppConstants.refreshTooltip,
           ),
         ],
       ),
-      body: Consumer<TransactionProvider>(
-        builder: (context, transactionProvider, child) {
-          // Handle loading state
-          if (transactionProvider.isLoading) {
+      body: BlocListener<TransactionBloc, TransactionState>(
+        listener: (context, state) {
+          // Handle success messages
+          if (state is TransactionOperationSuccess) {
+            ErrorHandler.showSuccessSnackBar(context, state.message);
+          }
+          // Handle errors
+          else if (state is TransactionError) {
+            ErrorHandler.showErrorSnackBar(context, state.error);
+          }
+        },
+        child: BlocBuilder<TransactionBloc, TransactionState>(
+          builder: (context, state) {
+            // Handle loading state
+            if (state is TransactionLoading) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(AppConstants.loadingTransactions),
+                  ],
+                ),
+              );
+            }
+
+            // Handle error state (with previous data if available)
+            if (state is TransactionError) {
+              return _buildErrorWidget(
+                state.error,
+                () => context.read<TransactionBloc>().add(
+                  const LoadTransactions(),
+                ),
+              );
+            }
+
+            // Handle loaded state (including success states)
+            if (state is TransactionLoaded ||
+                state is TransactionOperationSuccess) {
+              final transactions = state is TransactionLoaded
+                  ? state.displayTransactions
+                  : (state as TransactionOperationSuccess).transactions;
+
+              final currentBalance = state is TransactionLoaded
+                  ? state.currentBalance
+                  : transactions.fold<double>(
+                      0.0,
+                      (sum, tx) =>
+                          tx.isExpense ? sum - tx.value : sum + tx.value,
+                    );
+
+              final balanceImagePath = currentBalance >= 0
+                  ? AppConstants.happyPigImage
+                  : currentBalance == 0
+                  ? AppConstants.neutralPigImage
+                  : AppConstants.sadPigImage;
+
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<TransactionBloc>().add(
+                    const RefreshTransactions(),
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(
+                    AppConstants.getResponsivePadding(context),
+                  ),
+                  child: Column(
+                    children: [
+                      BalanceDisplay(
+                        currentBalance: currentBalance,
+                        getBalanceImagePath: () => balanceImagePath,
+                      ),
+                      SizedBox(
+                        height: AppConstants.getResponsivePadding(context),
+                      ),
+                      Expanded(
+                        child: transactions.isNotEmpty
+                            ? TransactionList(
+                                transactions: transactions,
+                                deleteTx: _deleteTransaction,
+                                editTx: _editTransaction,
+                              )
+                            : _buildEmptyTransactionsWidget(),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            // Initial state
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -228,55 +261,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             );
-          }
-
-          // Handle error state
-          if (transactionProvider.hasError &&
-              transactionProvider.error != null) {
-            return _buildErrorWidget(
-              transactionProvider.error!,
-              () => transactionProvider.loadTransactions(),
-            );
-          }
-
-          // Handle success state
-          return RefreshIndicator(
-            onRefresh: () => transactionProvider.refreshTransactions(),
-            child: Padding(
-              padding: EdgeInsets.all(
-                AppConstants.getResponsivePadding(context),
-              ),
-              child: Column(
-                children: [
-                  BalanceDisplay(
-                    currentBalance: transactionProvider.currentBalance,
-                    getBalanceImagePath: () =>
-                        transactionProvider.balanceImagePath,
-                  ),
-                  SizedBox(height: AppConstants.getResponsivePadding(context)),
-                  Expanded(
-                    child: transactionProvider.hasTransactions
-                        ? TransactionList(
-                            transactions: transactionProvider.transactions,
-                            deleteTx: _deleteTransaction,
-                            editTx: _editTransaction,
-                          )
-                        : _buildEmptyTransactionsWidget(),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+          },
+        ),
       ),
-      floatingActionButton: Consumer<TransactionProvider>(
-        builder: (context, transactionProvider, child) {
+      floatingActionButton: BlocBuilder<TransactionBloc, TransactionState>(
+        builder: (context, state) {
+          final isAddingTransaction =
+              state is TransactionLoaded && state.isAddingTransaction;
+
           return FloatingActionButton(
-            onPressed: transactionProvider.isAddingTransaction
-                ? null
-                : _showTransactionForm,
+            onPressed: isAddingTransaction ? null : _showTransactionForm,
             tooltip: AppConstants.addTransactionTooltip,
-            child: transactionProvider.isAddingTransaction
+            child: isAddingTransaction
                 ? const SizedBox(
                     width: 20,
                     height: 20,

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // Keep if you use it, though not directly for editing in this snippet
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
 import 'package:finanapp/models/transaction.dart';
-import 'package:finanapp/providers/transaction_provider.dart';
 import 'package:finanapp/utils/constants.dart';
-import 'package:finanapp/services/error_handler.dart'; // Import ErrorHandler
+import 'package:finanapp/services/error_handler.dart';
 
 class EditTransactionScreen extends StatefulWidget {
   final Transaction transaction;
@@ -42,7 +41,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     super.dispose();
   }
 
-  void _saveChanges() async {
+  void _saveChanges() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -72,31 +71,10 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     widget.transaction.date =
         _selectedDate; // Update the date as well, even if not editing it yet
 
-    final provider = context.read<TransactionProvider>();
-    final success = await provider.updateTransaction(
-      widget.transaction,
-    ); // Pass the modified existing object
-
-    if (mounted) {
-      setState(() {
-        _isSaving = false; // Reset saving state
-      });
-
-      if (success) {
-        ErrorHandler.showSuccessSnackBar(
-          context,
-          'Transação atualizada com sucesso!', // You might want to add this to AppConstants
-        );
-        Navigator.of(context).pop();
-      } else {
-        if (provider.error != null) {
-          ErrorHandler.showErrorSnackBar(context, provider.error!);
-          provider.clearError();
-        } else {
-          _showErrorDialog('Falha ao atualizar a transação.');
-        }
-      }
-    }
+    // Dispatch BLoC event instead of using Provider
+    context.read<TransactionBloc>().add(
+      UpdateTransaction(transaction: widget.transaction),
+    );
   }
 
   void _showErrorDialog(String message) {
@@ -141,331 +119,356 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text('Editar Transação'),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+    return BlocListener<TransactionBloc, TransactionState>(
+      listener: (context, state) {
+        // The listener in main.dart will show the snackbar.
+        // We just need to handle navigation and local state.
+        if (state is TransactionOperationSuccess &&
+            state.operationType == TransactionOperationType.update) {
+          if (mounted) {
+            // Pop the screen on success.
+            Navigator.of(context).pop();
+          }
+        } else if (state is TransactionError) {
+          // If an error occurs, reset the saving state to re-enable the form.
+          if (mounted && _isSaving) {
+            setState(() {
+              _isSaving = false;
+            });
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          title: const Text('Editar Transação'),
+          backgroundColor: Colors.blueAccent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        // Wrap with SingleChildScrollView to prevent overflow
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: EdgeInsets.all(AppConstants.getResponsivePadding(context)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.borderRadius,
+        body: SingleChildScrollView(
+          // Wrap with SingleChildScrollView to prevent overflow
+          child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: EdgeInsets.all(
+                AppConstants.getResponsivePadding(context),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(AppConstants.defaultPadding),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Informações da Transação',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueAccent,
-                              ),
-                        ),
-                        SizedBox(height: AppConstants.defaultPadding),
-                        TextFormField(
-                          controller: _titleController,
-                          enabled: !_isSaving, // Disable when saving
-                          decoration: InputDecoration(
-                            labelText: AppConstants.titleFieldLabel,
-                            hintText: AppConstants.titleFieldHint,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppConstants.borderRadius,
-                              ),
-                            ),
-                            prefixIcon: Icon(
-                              _isExpense
-                                  ? Icons.shopping_cart
-                                  : Icons.account_balance_wallet,
-                            ),
+                    child: Padding(
+                      padding: EdgeInsets.all(AppConstants.defaultPadding),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Informações da Transação',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueAccent,
+                                ),
                           ),
-                          maxLength: AppConstants.maxTitleLength,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return AppConstants.titleRequiredError;
-                            }
-                            if (value.trim().length >
-                                AppConstants.maxTitleLength) {
-                              return AppConstants.titleTooLongError;
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: AppConstants.defaultPadding),
-                        TextFormField(
-                          controller: _valueController,
-                          enabled: !_isSaving, // Disable when saving
-                          decoration: InputDecoration(
-                            labelText: AppConstants.valueFieldLabel,
-                            hintText: AppConstants.valueFieldHint,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                AppConstants.borderRadius,
+                          SizedBox(height: AppConstants.defaultPadding),
+                          TextFormField(
+                            controller: _titleController,
+                            enabled: !_isSaving, // Disable when saving
+                            decoration: InputDecoration(
+                              labelText: AppConstants.titleFieldLabel,
+                              hintText: AppConstants.titleFieldHint,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppConstants.borderRadius,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                _isExpense
+                                    ? Icons.shopping_cart
+                                    : Icons.account_balance_wallet,
                               ),
                             ),
-                            prefixIcon: const Icon(Icons.monetization_on),
-                            prefixText: AppConstants.currencyPrefix,
+                            maxLength: AppConstants.maxTitleLength,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return AppConstants.titleRequiredError;
+                              }
+                              if (value.trim().length >
+                                  AppConstants.maxTitleLength) {
+                                return AppConstants.titleTooLongError;
+                              }
+                              return null;
+                            },
                           ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
+                          SizedBox(height: AppConstants.defaultPadding),
+                          TextFormField(
+                            controller: _valueController,
+                            enabled: !_isSaving, // Disable when saving
+                            decoration: InputDecoration(
+                              labelText: AppConstants.valueFieldLabel,
+                              hintText: AppConstants.valueFieldHint,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  AppConstants.borderRadius,
+                                ),
+                              ),
+                              prefixIcon: const Icon(Icons.monetization_on),
+                              prefixText: AppConstants.currencyPrefix,
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return AppConstants.valueRequiredError;
+                              }
+                              final doubleValue = double.tryParse(
+                                value.replaceAll(',', '.'),
+                              );
+                              if (doubleValue == null) {
+                                return AppConstants.valueInvalidError;
+                              }
+                              if (doubleValue <= 0) {
+                                return AppConstants.valueZeroError;
+                              }
+                              if (doubleValue >
+                                  AppConstants.maxTransactionValue) {
+                                return AppConstants.valueTooHighError;
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return AppConstants.valueRequiredError;
-                            }
-                            final doubleValue = double.tryParse(
-                              value.replaceAll(',', '.'),
-                            );
-                            if (doubleValue == null) {
-                              return AppConstants.valueInvalidError;
-                            }
-                            if (doubleValue <= 0) {
-                              return AppConstants.valueZeroError;
-                            }
-                            if (doubleValue >
-                                AppConstants.maxTransactionValue) {
-                              return AppConstants.valueTooHighError;
-                            }
-                            return null;
-                          },
-                        ),
-                        // If you add date picking, add it here
-                        // SizedBox(height: AppConstants.defaultPadding),
-                        // Row(
-                        //   children: [
-                        //     Expanded(
-                        //       child: Text(
-                        //         'Data Selecionada: ${DateFormat(AppConstants.dateFormat).format(_selectedDate)}',
-                        //       ),
-                        //     ),
-                        //     TextButton(
-                        //       onPressed: _isSaving ? null : _presentDatePicker,
-                        //       child: const Text('Selecionar Data'),
-                        //     ),
-                        //   ],
-                        // ),
-                      ],
+                          // If you add date picking, add it here
+                          // SizedBox(height: AppConstants.defaultPadding),
+                          // Row(
+                          //   children: [
+                          //     Expanded(
+                          //       child: Text(
+                          //         'Data Selecionada: ${DateFormat(AppConstants.dateFormat).format(_selectedDate)}',
+                          //       ),
+                          //     ),
+                          //     TextButton(
+                          //       onPressed: _isSaving ? null : _presentDatePicker,
+                          //       child: const Text('Selecionar Data'),
+                          //     ),
+                          //   ],
+                          // ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: AppConstants.defaultPadding),
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.borderRadius,
+                  SizedBox(height: AppConstants.defaultPadding),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.borderRadius,
+                      ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(AppConstants.defaultPadding),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppConstants.transactionTypeLabel,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: AppConstants.smallPadding),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: _isSaving
-                                    ? null
-                                    : () => setState(() => _isExpense = true),
-                                child: Container(
-                                  padding: EdgeInsets.all(
-                                    AppConstants.defaultPadding,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _isExpense
-                                        ? Colors.red.shade100
-                                        : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(
-                                      AppConstants.borderRadius,
+                    child: Padding(
+                      padding: EdgeInsets.all(AppConstants.defaultPadding),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppConstants.transactionTypeLabel,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: AppConstants.smallPadding),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: _isSaving
+                                      ? null
+                                      : () => setState(() => _isExpense = true),
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      AppConstants.defaultPadding,
                                     ),
-                                    border: Border.all(
+                                    decoration: BoxDecoration(
                                       color: _isExpense
-                                          ? Colors.red
-                                          : Colors.grey.shade300,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.trending_down,
+                                          ? Colors.red.shade100
+                                          : Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(
+                                        AppConstants.borderRadius,
+                                      ),
+                                      border: Border.all(
                                         color: _isExpense
                                             ? Colors.red
-                                            : Colors.grey,
-                                        size: 32,
+                                            : Colors.grey.shade300,
+                                        width: 2,
                                       ),
-                                      SizedBox(
-                                        height: AppConstants.smallPadding,
-                                      ),
-                                      Text(
-                                        AppConstants.expenseLabel,
-                                        style: TextStyle(
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.trending_down,
                                           color: _isExpense
                                               ? Colors.red
                                               : Colors.grey,
-                                          fontWeight: FontWeight.bold,
+                                          size: 32,
                                         ),
-                                      ),
-                                      Text(
-                                        AppConstants.expenseSubtitle,
-                                        style: TextStyle(
-                                          color: _isExpense
-                                              ? Colors.red.shade700
-                                              : Colors.grey,
-                                          fontSize: 12,
+                                        SizedBox(
+                                          height: AppConstants.smallPadding,
                                         ),
-                                      ),
-                                    ],
+                                        Text(
+                                          AppConstants.expenseLabel,
+                                          style: TextStyle(
+                                            color: _isExpense
+                                                ? Colors.red
+                                                : Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          AppConstants.expenseSubtitle,
+                                          style: TextStyle(
+                                            color: _isExpense
+                                                ? Colors.red.shade700
+                                                : Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: AppConstants.defaultPadding),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: _isSaving
-                                    ? null
-                                    : () => setState(() => _isExpense = false),
-                                child: Container(
-                                  padding: EdgeInsets.all(
-                                    AppConstants.defaultPadding,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: !_isExpense
-                                        ? Colors.green.shade100
-                                        : Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(
-                                      AppConstants.borderRadius,
+                              SizedBox(width: AppConstants.defaultPadding),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: _isSaving
+                                      ? null
+                                      : () =>
+                                            setState(() => _isExpense = false),
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      AppConstants.defaultPadding,
                                     ),
-                                    border: Border.all(
+                                    decoration: BoxDecoration(
                                       color: !_isExpense
-                                          ? Colors.green
-                                          : Colors.grey.shade300,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.trending_up,
+                                          ? Colors.green.shade100
+                                          : Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(
+                                        AppConstants.borderRadius,
+                                      ),
+                                      border: Border.all(
                                         color: !_isExpense
                                             ? Colors.green
-                                            : Colors.grey,
-                                        size: 32,
+                                            : Colors.grey.shade300,
+                                        width: 2,
                                       ),
-                                      SizedBox(
-                                        height: AppConstants.smallPadding,
-                                      ),
-                                      Text(
-                                        AppConstants.incomeLabel,
-                                        style: TextStyle(
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.trending_up,
                                           color: !_isExpense
                                               ? Colors.green
                                               : Colors.grey,
-                                          fontWeight: FontWeight.bold,
+                                          size: 32,
                                         ),
-                                      ),
-                                      Text(
-                                        AppConstants.incomeSubtitle,
-                                        style: TextStyle(
-                                          color: !_isExpense
-                                              ? Colors.green.shade700
-                                              : Colors.grey,
-                                          fontSize: 12,
+                                        SizedBox(
+                                          height: AppConstants.smallPadding,
                                         ),
-                                      ),
-                                    ],
+                                        Text(
+                                          AppConstants.incomeLabel,
+                                          style: TextStyle(
+                                            color: !_isExpense
+                                                ? Colors.green
+                                                : Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          AppConstants.incomeSubtitle,
+                                          style: TextStyle(
+                                            color: !_isExpense
+                                                ? Colors.green.shade700
+                                                : Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: AppConstants.defaultPadding), // Add some space
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _isSaving
-                            ? null
-                            : () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            vertical: AppConstants.defaultPadding,
+                  SizedBox(
+                    height: AppConstants.defaultPadding,
+                  ), // Add some space
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isSaving
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppConstants.defaultPadding,
+                            ),
                           ),
+                          child: Text(AppConstants.cancelButton),
                         ),
-                        child: Text(AppConstants.cancelButton),
                       ),
-                    ),
-                    SizedBox(width: AppConstants.defaultPadding),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: _isSaving ? null : _saveChanges,
-                        icon: _isSaving
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                      SizedBox(width: AppConstants.defaultPadding),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: _isSaving ? null : _saveChanges,
+                          icon: _isSaving
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
-                                ),
-                              )
-                            : const Icon(Icons.save),
-                        label: Text(
-                          _isSaving
-                              ? AppConstants.savingButton
-                              : AppConstants.saveButton,
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            vertical: AppConstants.defaultPadding,
+                                )
+                              : const Icon(Icons.save),
+                          label: Text(
+                            _isSaving
+                                ? AppConstants.savingButton
+                                : AppConstants.saveButton,
                           ),
-                          backgroundColor: _isExpense
-                              ? Colors.red
-                              : Colors.green,
-                          foregroundColor: Colors.white,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppConstants.defaultPadding,
+                            ),
+                            backgroundColor: _isExpense
+                                ? Colors.red
+                                : Colors.green,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: AppConstants.defaultPadding),
-              ],
+                    ],
+                  ),
+                  SizedBox(height: AppConstants.defaultPadding),
+                ],
+              ),
             ),
           ),
         ),

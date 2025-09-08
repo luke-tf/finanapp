@@ -1,14 +1,12 @@
-// Updated new_transaction_form.dart
+// Updated new_transaction_form.dart - BLoC Version
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:finanapp/providers/transaction_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
 import 'package:finanapp/utils/constants.dart';
 
 class NewTransactionForm extends StatefulWidget {
-  final Function(String, double, bool) addTx;
-
-  const NewTransactionForm(this.addTx, {super.key});
+  const NewTransactionForm({super.key});
 
   @override
   State<NewTransactionForm> createState() => _NewTransactionFormState();
@@ -32,7 +30,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
     });
   }
 
-  void _submitData() async {
+  void _submitData() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -43,12 +41,21 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
     );
 
     if (enteredTitle.isEmpty || enteredValue == null || enteredValue <= 0) {
-      _showErrorDialog('Por favor, preencha todos os campos corretamente');
+      _showErrorDialog(AppConstants.fillAllFieldsError);
       return;
     }
 
-    // Call the callback function passed from parent
-    widget.addTx(enteredTitle, enteredValue, _isExpense);
+    // Dispatch BLoC event instead of callback
+    context.read<TransactionBloc>().add(
+      AddTransaction(
+        title: enteredTitle,
+        value: enteredValue,
+        isExpense: _isExpense,
+      ),
+    );
+
+    // Close the modal - this will be handled by BlocListener in main.dart
+    Navigator.of(context).pop();
   }
 
   void _showErrorDialog(String message) {
@@ -94,9 +101,22 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TransactionProvider>(
-      builder: (context, transactionProvider, child) {
-        final isLoading = transactionProvider.isAddingTransaction;
+    return BlocConsumer<TransactionBloc, TransactionState>(
+      listener: (context, state) {
+        // Handle success - form will be automatically closed by main.dart
+        if (state is TransactionOperationSuccess &&
+            state.operationType == TransactionOperationType.add) {
+          // Success is already handled by main.dart BlocListener
+        }
+
+        // Handle errors
+        if (state is TransactionError) {
+          _showErrorDialog(state.error.message);
+        }
+      },
+      builder: (context, state) {
+        final isLoading =
+            state is TransactionLoaded && state.isAddingTransaction;
 
         return Padding(
           padding: EdgeInsets.only(
@@ -371,13 +391,13 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                 SizedBox(height: AppConstants.smallPadding + 2),
 
                 // Helper text
-                if (transactionProvider.hasTransactions)
+                if (state is TransactionLoaded && state.hasTransactions)
                   Padding(
                     padding: EdgeInsets.only(top: AppConstants.smallPadding),
                     child: Text(
-                      'Saldo atual: R\$ ${transactionProvider.currentBalance.toStringAsFixed(2)}',
+                      'Saldo atual: R\$ ${state.currentBalance.toStringAsFixed(2)}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: transactionProvider.currentBalance >= 0
+                        color: state.currentBalance >= 0
                             ? Colors.green
                             : Colors.red,
                         fontWeight: FontWeight.w500,
