@@ -1,5 +1,3 @@
-// Updated new_transaction_form.dart - BLoC Version
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finanapp/blocs/transaction/transaction_barrel.dart';

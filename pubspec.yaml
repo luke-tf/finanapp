@@ -33,6 +33,7 @@ dev_dependencies:
   # BLoC Testing
   bloc_test: ^9.1.6
   mocktail: ^1.0.0
+  golden_toolkit: ^0.15.0
 
 flutter:
   uses-material-design: true

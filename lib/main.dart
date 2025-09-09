@@ -1,5 +1,3 @@
-// main.dart - Updated with BLoC
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finanapp/widgets/transaction/new_transaction_form.dart';

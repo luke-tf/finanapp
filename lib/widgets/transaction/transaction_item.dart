@@ -1,5 +1,3 @@
-// transaction_item.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:finanapp/utils/constants.dart';
