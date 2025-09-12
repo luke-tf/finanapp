@@ -1,5 +1,6 @@
 // database_service.dart
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:finanapp/models/transaction.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
@@ -24,13 +25,16 @@ class DatabaseService {
     try {
       print('--- EXECUTANDO A INICIALIZAÇÃO CORRETA DO BANCO DE DADOS ---');
 
-      // Pega um diretório seguro para o app usando o alias do import
-      final appDocumentsDirectory = await path_provider
-          .getApplicationDocumentsDirectory();
-      final hivePath = '${appDocumentsDirectory.path}/hive_data';
-
-      // Inicializa o Hive com Flutter e diretório personalizado
-      await Hive.initFlutter(hivePath);
+      String? path;
+      if (!kIsWeb) {
+        // Em mobile/desktop, usamos path_provider para um diretório seguro.
+        final appDocumentsDirectory = await path_provider
+            .getApplicationDocumentsDirectory();
+        path = appDocumentsDirectory.path;
+      }
+      // Na web, o path é nulo e o Hive usa IndexedDB.
+      // Em outras plataformas, ele usa o path fornecido.
+      await Hive.initFlutter(path);
 
       // Registra o adapter apenas uma vez
       if (!Hive.isAdapterRegistered(0)) {
@@ -46,7 +50,7 @@ class DatabaseService {
       _transactionBox = await Hive.openBox<Transaction>('transactions');
       _isInitialized = true;
 
-      print('DatabaseService inicializado com sucesso em: $hivePath');
+      print('DatabaseService inicializado com sucesso.');
     } catch (e) {
       print('Erro ao inicializar DatabaseService: $e');
       _isInitialized = false;
