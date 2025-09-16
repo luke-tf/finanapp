@@ -1,3 +1,4 @@
+import 'package:finanapp/services/transaction_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finanapp/widgets/transaction/new_transaction_form.dart';
@@ -208,11 +209,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           tx.isExpense ? sum - tx.value : sum + tx.value,
                     );
 
-              final balanceImagePath = currentBalance >= 0
-                  ? AppConstants.happyPigImage
-                  : currentBalance == 0
-                  ? AppConstants.neutralPigImage
-                  : AppConstants.sadPigImage;
+              final balanceImagePath = TransactionService().getBalanceImagePath(
+                currentBalance,
+              );
 
               return RefreshIndicator(
                 onRefresh: () async {

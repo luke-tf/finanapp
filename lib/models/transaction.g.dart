@@ -20,7 +20,7 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       title: fields[0] as String,
       value: fields[1] as double,
       date: fields[2] as DateTime?,
-      isExpense: fields[3] as bool,
+      isExpense: fields[3] as bool? ?? true,
     );
   }
 
