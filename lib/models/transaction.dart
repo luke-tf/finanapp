@@ -1,5 +1,3 @@
-// transaction.dart
-
 import 'package:hive/hive.dart';
 
 part 'transaction.g.dart';

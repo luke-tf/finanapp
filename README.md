@@ -34,14 +34,14 @@ A Flutter application for managing personal finances with transaction tracking, 
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/luke-tf/finanapp.git
+git clone <your-repo-url>
 cd finanapp
 
 # Install dependencies
 flutter pub get
 
 # Generate code (for Hive models)
-dart run build_runner build --delete-conflicting-outputs
+flutter packages pub run build_runner build
 
 # Run the app
 flutter run
@@ -139,7 +139,7 @@ dependencies:
   hive: ^2.2.3             # Database
   hive_flutter: ^1.1.0     # Hive Flutter integration
   path_provider: ^2.1.3    # File system paths
-  intl: ^0.19.0            # Internationalization
+  intl: ^0.20.2            # Internationalization
 ```
 
 ### Dev Dependencies
@@ -228,12 +228,3 @@ The app includes comprehensive error handling:
 4. Commit changes (`git commit -m 'Add amazing feature'`)
 5. Push to branch (`git push origin feature/amazing-feature`)
 6. Open Pull Request
-
-## 📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙋‍♂️ Support
-For support, please open an issue in the GitHub repository or contact the development team.
-
----
-**Built with ❤️ using Flutter and BLoC**
