@@ -20,6 +20,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Create service instance once to avoid repeated instantiation
+  late final TransactionService _transactionService;
+
+  @override
+  void initState() {
+    super.initState();
+    _transactionService = TransactionService();
+  }
+
   void _deleteTransaction(int key) {
     context.read<TransactionBloc>().add(DeleteTransaction(key: key));
   }
@@ -82,6 +91,14 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<TransactionBloc>().add(const LoadTransactions());
   }
 
+  // Extract balance calculation logic to avoid duplication
+  double _calculateBalance(List<dynamic> transactions) {
+    return transactions.fold<double>(
+      0.0,
+      (sum, tx) => tx.isExpense ? sum - tx.value : sum + tx.value,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,12 +149,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final currentBalance = state is TransactionLoaded
           ? state.currentBalance
-          : transactions.fold<double>(
-              0.0,
-              (sum, tx) => tx.isExpense ? sum - tx.value : sum + tx.value,
-            );
+          : _calculateBalance(transactions);
 
-      final balanceImagePath = TransactionService().getBalanceImagePath(
+      // Get balance image path directly - cleaner approach
+      final balanceImagePath = _transactionService.getBalanceImagePath(
         currentBalance,
       );
 
@@ -149,7 +164,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               BalanceDisplay(
                 currentBalance: currentBalance,
-                getBalanceImagePath: () => balanceImagePath,
+                getBalanceImagePath: () =>
+                    balanceImagePath, // Keep as callback for now
               ),
               SizedBox(height: AppConstants.getResponsivePadding(context)),
               Expanded(
