@@ -23,8 +23,8 @@ A simple and elegant Flutter application for managing your personal finances, tr
 
 | Home Screen                                                                                             | Add Transaction Modal                                                                                         | Edit Transaction                                                                                           |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-|  |  |  |
-| *View your balance and transaction history.*                                                             | *Quickly add new expenses or incomes.*                                                                        | *Modify the details of an existing transaction.*                                                            |
+| ![Home Screen](https://via.placeholder.com/300x600.png?text=Home+Screen)                                | ![Add Transaction](https://via.placeholder.com/300x600.png?text=Add+Transaction)                                | ![Edit Transaction](https://via.placeholder.com/300x600.png?text=Edit+Transaction)                           |
+| *View your balance and transaction history.*                                                            | *Quickly add new expenses or incomes.*                                                                        | *Modify the details of an existing transaction.*                                                           |
 
 ## 🛠️ Tech Stack & Architecture
 
@@ -76,7 +76,8 @@ To get a local copy up and running, follow these simple steps.
 
 1.  **Clone the repository:**
     ```sh
-    git clone https://github.com/your-username/finanapp.git
+    # Replace with your actual repository URL
+    git clone https://github.com/your-repo-username/finanapp.git
     cd finanapp
     ```
 2.  **Install dependencies:**
@@ -97,19 +98,22 @@ To get a local copy up and running, follow these simple steps.
 
 This project includes a comprehensive suite of tests to ensure code quality and stability.
 
-1.  **Run Unit & Widget Tests:**
+1.  **Run Unit, Widget, and BLoC Tests:**
+    This command runs all logical and behavioral tests but excludes golden tests.
     ```sh
     flutter test
     ```
-2.  **Run Golden (Snapshot) Tests:**
+
+2.  **Run Golden (UI Snapshot) Tests:**
     Golden tests compare your UI components against reference images.
-    - To run the tests and compare with existing golden files:
-      ```sh
-      flutter test
-      ```
-    - To update or generate new golden files after making intentional UI changes:
+
+    - **To update or generate new golden files** (do this after making intentional UI changes):
       ```sh
       flutter test --update-goldens
+      ```
+    - **To verify the UI against existing golden files:**
+      ```sh
+      flutter test test/golden/
       ```
 
 ## 🤝 Contributing
