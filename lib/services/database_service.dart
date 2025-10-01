@@ -1,5 +1,3 @@
-// database_service.dart
-
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:finanapp/models/transaction.dart';

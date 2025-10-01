@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
 import 'package:finanapp/models/transaction.dart';
 import 'package:finanapp/utils/constants.dart';
-import 'package:finanapp/services/error_handler.dart';
 
 class EditTransactionScreen extends StatefulWidget {
   final Transaction transaction;
