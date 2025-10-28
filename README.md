@@ -1,4 +1,3 @@
-
 # Finanapp - Personal Finance Tracker
 
 [![Flutter](https://img.shields.io/badge/Framework-Flutter-02569B?style=for-the-badge&logo=flutter)](https://flutter.dev)
@@ -6,124 +5,196 @@
 [![BLoC](https://img.shields.io/badge/State%20Management-BLoC-4595D3?style=for-the-badge&logo=flutter)](https://bloclibrary.dev)
 [![Hive](https://img.shields.io/badge/Database-Hive-FCA337?style=for-the-badge)](https://hive.dev)
 
-A simple and elegant Flutter application for managing your personal finances, tracking expenses and income with ease. Built with a focus on clean architecture, robust state management, and a smooth user experience.
+A simple and elegant Flutter application for managing your personal finances. Track expenses and income with an intuitive interface, backed by robust architecture and offline-first storage.
+
+---
 
 ## ✨ Key Features
 
-- **Transaction Management**: Easily add, edit, and delete income and expense transactions.
-- **Real-time Balance**: View your current balance update instantly with every transaction.
-- **Visual Feedback**: A friendly piggy bank mascot changes its expression based on your financial balance (happy, neutral, or sad).
-- **Persistent Storage**: All data is stored locally on your device using **Hive**, ensuring offline access and fast performance.
-- **Robust State Management**: Utilizes the **BLoC** pattern for predictable and scalable state management.
-- **Pull-to-Refresh**: Quickly refresh your transaction list.
-- **Filtering & Searching**: Efficiently find transactions by title, date range, or type (expense/income).
-- **Responsive UI**: A clean and intuitive interface that adapts to different screen sizes.
+### Core Functionality
+- **Trade Management**: Add, edit, and delete income and expense trades with ease
+- **Real-time Balance Tracking**: See your balance update instantly with every trade
+- **Offline-First**: All data stored locally using Hive - works without internet
+- **Visual Feedback**: Animated piggy bank mascot reflects your financial health
 
-## 📱 Screenshots
+### User Experience
+- **Smart Filtering**: Search by title, filter by date range or trade type
+- **Pull-to-Refresh**: Quick data refresh with a simple swipe
+- **Form Validation**: Comprehensive input validation prevents data errors
+- **Error Handling**: User-friendly error messages with detailed logging
 
-| Home Screen                                                                                             | Add Transaction Modal                                                                                         | Edit Transaction                                                                                           |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| ![Home Screen](https://via.placeholder.com/300x600.png?text=Home+Screen)                                | ![Add Transaction](https://via.placeholder.com/300x600.png?text=Add+Transaction)                                | ![Edit Transaction](https://via.placeholder.com/300x600.png?text=Edit+Transaction)                           |
-| *View your balance and transaction history.*                                                            | *Quickly add new expenses or incomes.*                                                                        | *Modify the details of an existing transaction.*                                                           |
+### Technical Excellence
+- **Clean Architecture**: Separated concerns with BLoC pattern
+- **Type Safety**: Leverages Dart's strong typing and null safety
+- **Responsive Design**: Adapts to different screen sizes seamlessly
+- **State Management**: Predictable state with flutter_bloc
 
-## 🛠️ Tech Stack & Architecture
+---
 
-This project is built with a modern Flutter stack, emphasizing separation of concerns and testability.
+## 🚀 Quick Start
 
-- **Framework**: [Flutter](https://flutter.dev)
-- **Language**: [Dart](https://dart.dev)
-- **Architecture**: Clean Architecture principles with a BLoC pattern.
-  - **UI Layer**: Widgets and Screens (`/lib/screens`, `/lib/widgets`)
-  - **Business Logic Layer**: BLoC (`/lib/blocs`)
-  - **Data Layer**: Services and Models (`/lib/services`, `/lib/models`)
-- **State Management**: [flutter_bloc](https://pub.dev/packages/flutter_bloc) for predictable state handling.
-- **Local Database**: [Hive](https://pub.dev/packages/hive) for fast, lightweight, and offline data persistence.
-- **Testing**:
-  - **Unit & BLoC Testing**: [bloc_test](https://pub.dev/packages/bloc_test) and [mocktail](https://pub.dev/packages/mocktail).
-  - **UI Snapshot Testing**: [golden_toolkit](https://pub.dev/packages/golden_toolkit) to prevent unintended UI changes.
-- **Code Generation**: [build_runner](https://pub.dev/packages/build_runner) and [hive_generator](https://pub.dev/packages/hive_generator) for model adapters.
+### Prerequisites
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) 3.8.1 or higher
+- Dart 3.8.1 or higher
+- A code editor (VS Code, Android Studio, or IntelliJ)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/finanapp.git
+   cd finanapp
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Generate required files**
+   ```bash
+   flutter pub run build_runner build --delete-conflicting-outputs
+   ```
+
+4. **Run the application**
+   ```bash
+   flutter run
+   ```
+
+---
+
+## 🏗️ Architecture Overview
+
+Finanapp follows **Clean Architecture** principles with clear separation of concerns:
+
+```
+┌─────────────────────────────────────────┐
+│           Presentation Layer            │
+│    (Screens, Widgets, BLoC)             │
+├─────────────────────────────────────────┤
+│          Business Logic Layer           │
+│         (Services, BLoC Logic)          │
+├─────────────────────────────────────────┤
+│            Data Layer                   │
+│    (Database, Models, Repositories)     │
+└─────────────────────────────────────────┘
+```
+
+### Tech Stack
+- **Framework**: Flutter 3.8.1+
+- **Language**: Dart 3.8.1+
+- **State Management**: flutter_bloc, equatable
+- **Local Database**: Hive with hive_flutter
+- **Date Formatting**: intl
+- **Animations**: animated_list_plus
+- **Code Generation**: build_runner, hive_generator
+
+---
 
 ## 📂 Project Structure
 
-The codebase is organized into a scalable and maintainable structure:
-
 ```
 lib/
-├── blocs/              # BLoC classes for state management
-│   └── transaction/
-├── models/             # Data models (e.g., Transaction)
-├── screens/            # UI screens for the application
-├── services/           # Business logic and data access (database, error handling)
-├── utils/              # Constants and utility functions
-├── widgets/            # Reusable UI components
-└── main.dart           # Main application entry point
-test/
-├── golden/             # Golden tests for UI components
-├── helpers/            # Test helpers and mock data
-└── ...                 # Other unit and widget tests
+├── blocs/                  # State management
+│   └── trade/              # Trade BLoC (events, states, logic)
+├── models/                 # Data models
+│   └── trade.dart          # Trade model with Hive annotations
+├── screens/                # UI screens
+│   ├── home_screen.dart    # Main dashboard
+│   └── edit_trade_screen.dart
+├── services/               # Business logic
+│   ├── database_service.dart
+│   ├── trade_service.dart
+│   └── error_handler.dart
+├── utils/                  # Constants and helpers
+│   └── constants.dart
+├── widgets/                # Reusable components
+│   ├── balance/            # Balance display widgets
+│   ├── trade/              # Trade-related widgets
+│   ├── common/             # Shared widgets
+│   └── error/              # Error display widgets
+└── main.dart               # Application entry point
 ```
 
-## 🚀 Getting Started
+---
 
-To get a local copy up and running, follow these simple steps.
+## 🎯 Usage Guide
 
-### Prerequisites
+### Adding a Trade
+1. Tap the **+** floating action button
+2. Fill in the title and value
+3. Select trade type (Expense or Income)
+4. Tap **Save**
 
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) (version 3.8.1 or higher)
-- A code editor like VS Code or Android Studio
+### Editing a Trade
+1. **Long-press** any trade in the list
+2. Modify the details
+3. Tap **Save Changes**
 
-### Installation & Setup
+### Deleting a Trade
+1. Tap the **trash icon** on any trade
+2. Confirm deletion
 
-1.  **Clone the repository:**
-    ```sh
-    # Replace with your actual repository URL
-    git clone https://github.com/your-repo-username/finanapp.git
-    cd finanapp
-    ```
-2.  **Install dependencies:**
-    ```sh
-    flutter pub get
-    ```
-3.  **Run the code generator for Hive:**
-    This step is necessary to generate the `*.g.dart` files for your Hive data models.
-    ```sh
-    flutter pub run build_runner build --delete-conflicting-outputs
-    ```
-4.  **Run the app:**
-    ```sh
-    flutter run
-    ```
+### Filtering Trades
+- Use the search bar to find trades by title
+- Apply date range filters
+- Filter by type (Expenses only or Income only)
 
-## ✅ Running Tests
-
-This project includes a comprehensive suite of tests to ensure code quality and stability.
-
-1.  **Run Unit, Widget, and BLoC Tests:**
-    This command runs all logical and behavioral tests but excludes golden tests.
-    ```sh
-    flutter test
-    ```
-
-2.  **Run Golden (UI Snapshot) Tests:**
-    Golden tests compare your UI components against reference images.
-
-    - **To update or generate new golden files** (do this after making intentional UI changes):
-      ```sh
-      flutter test --update-goldens
-      ```
-    - **To verify the UI against existing golden files:**
-      ```sh
-      flutter test test/golden/
-      ```
+---
 
 ## 🤝 Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are welcome! Here's how you can help:
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
+3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
+4. **Push** to the branch (`git push origin feature/AmazingFeature`)
+5. **Open** a Pull Request
 
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+### Development Guidelines
+- Follow the existing code style (see `analysis_options.yaml`)
+- Write meaningful commit messages
+- Test your changes thoroughly
+- Update documentation if needed
+- For detailed technical specifications, see [SPECIFICATIONS.md](SPECIFICATIONS.md)
+
+---
+
+## 📋 Roadmap
+
+- [ ] Comprehensive test coverage (unit, widget, integration)
+- [ ] Export trades to CSV/PDF
+- [ ] Budget tracking and alerts
+- [ ] Category-based organization
+- [ ] Charts and statistics
+- [ ] Multi-currency support
+- [ ] Cloud backup and sync
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- Flutter team for the amazing framework
+- BLoC library maintainers
+- Hive database creators
+- The open-source community
+
+---
+
+## 📞 Support
+
+If you encounter any issues or have questions:
+- Open an issue on GitHub
+- Check [SPECIFICATIONS.md](SPECIFICATIONS.md) for technical details
+- Review the troubleshooting section in the specifications
+
+---
+
+**Built with ❤️ using Flutter**
