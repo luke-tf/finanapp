@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:finanapp/utils/constants.dart';
 
-class EmptyTransactionsWidget extends StatelessWidget {
-  final VoidCallback onAddTransaction;
+class EmptyTradesWidget extends StatelessWidget {
+  final VoidCallback onAddTrade;
 
-  const EmptyTransactionsWidget({super.key, required this.onAddTransaction});
+  const EmptyTradesWidget({super.key, required this.onAddTrade});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class EmptyTransactionsWidget extends StatelessWidget {
           ),
           SizedBox(height: AppConstants.getResponsivePadding(context)),
           Text(
-            AppConstants.noTransactionsTitle,
+            AppConstants.noTradesTitle,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: Colors.grey.shade600,
               fontWeight: FontWeight.w500,
@@ -27,7 +27,7 @@ class EmptyTransactionsWidget extends StatelessWidget {
           ),
           SizedBox(height: AppConstants.smallPadding),
           Text(
-            AppConstants.noTransactionsMessage,
+            AppConstants.noTradesMessage,
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
@@ -35,9 +35,9 @@ class EmptyTransactionsWidget extends StatelessWidget {
           ),
           SizedBox(height: AppConstants.getResponsivePadding(context) * 1.5),
           ElevatedButton.icon(
-            onPressed: onAddTransaction,
+            onPressed: onAddTrade,
             icon: const Icon(Icons.add),
-            label: Text(AppConstants.firstTransactionButton),
+            label: Text(AppConstants.firstTradeButton),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),

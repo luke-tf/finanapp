@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
+import 'package:finanapp/blocs/trade/trade_barrel.dart';
 import 'package:finanapp/utils/constants.dart';
 
-class NewTransactionForm extends StatefulWidget {
-  const NewTransactionForm({super.key});
+class NewTradeForm extends StatefulWidget {
+  const NewTradeForm({super.key});
 
   @override
-  State<NewTransactionForm> createState() => _NewTransactionFormState();
+  State<NewTradeForm> createState() => _NewTradeFormState();
 }
 
-class _NewTransactionFormState extends State<NewTransactionForm> {
+class _NewTradeFormState extends State<NewTradeForm> {
   final _titleController = TextEditingController();
   final _valueController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -44,8 +44,8 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
     }
 
     // Dispatch BLoC event instead of callback
-    context.read<TransactionBloc>().add(
-      AddTransaction(
+    context.read<TradeBloc>().add(
+      AddTrade(
         title: enteredTitle,
         value: enteredValue,
         isExpense: _isExpense,
@@ -99,22 +99,22 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TransactionBloc, TransactionState>(
+    return BlocConsumer<TradeBloc, TradeState>(
       listener: (context, state) {
         // Handle success - form will be automatically closed by main.dart
-        if (state is TransactionOperationSuccess &&
-            state.operationType == TransactionOperationType.add) {
+        if (state is TradeOperationSuccess &&
+            state.operationType == TradeOperationType.add) {
           // Success is already handled by main.dart BlocListener
         }
 
         // Handle errors
-        if (state is TransactionError) {
+        if (state is TradeError) {
           _showErrorDialog(state.error.message);
         }
       },
       builder: (context, state) {
         final isLoading =
-            state is TransactionLoaded && state.isAddingTransaction;
+            state is TradeLoaded && state.isAddingTrade;
 
         return Padding(
           padding: EdgeInsets.only(
@@ -135,7 +135,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      AppConstants.newTransactionTitle,
+                      AppConstants.newTradeTitle,
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
@@ -216,7 +216,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     if (doubleValue <= 0) {
                       return AppConstants.valueZeroError;
                     }
-                    if (doubleValue > 999999999.99) {
+                    if (doubleValue > AppConstants.maxTradeValue) {
                       return AppConstants.valueTooHighError;
                     }
                     return null;
@@ -224,7 +224,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                 ),
                 SizedBox(height: AppConstants.largePadding),
 
-                // Transaction Type Selection
+                // Trade Type Selection
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
@@ -235,7 +235,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        AppConstants.transactionTypeLabel,
+                        AppConstants.tradeTypeLabel,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w500),
                       ),
@@ -389,7 +389,7 @@ class _NewTransactionFormState extends State<NewTransactionForm> {
                 SizedBox(height: AppConstants.smallPadding + 2),
 
                 // Helper text
-                if (state is TransactionLoaded && state.hasTransactions)
+                if (state is TradeLoaded && state.hasTrades)
                   Padding(
                     padding: EdgeInsets.only(top: AppConstants.smallPadding),
                     child: Text(

@@ -12,16 +12,16 @@ class AppConstants {
 
   // UI Text
   static const String currentBalanceLabel = 'Saldo Atual';
-  static const String newTransactionTitle = 'Nova Transação';
+  static const String newTradeTitle = 'Nova Transação';
   static const String titleFieldLabel = 'Título *';
   static const String titleFieldHint = 'Ex: Compra no supermercado';
-  static const String valueFieldLabel = 'Valor (R\$) *';
+    static const String valueFieldLabel = 'Valor (R\$) *';
   static const String valueFieldHint = '0,00';
   static const String expenseLabel = 'Despesa';
   static const String incomeLabel = 'Receita';
   static const String expenseSubtitle = 'Saída de dinheiro';
   static const String incomeSubtitle = 'Entrada de dinheiro';
-  static const String transactionTypeLabel = 'Tipo de transação:';
+  static const String tradeTypeLabel = 'Tipo de transação:';
 
   // Button Labels
   static const String saveButton = 'Salvar';
@@ -32,16 +32,16 @@ class AppConstants {
   static const String confirmButton = 'OK';
   static const String retryButton = 'Tentar Novamente';
   static const String detailsButton = 'Ver Detalhes';
-  static const String firstTransactionButton = 'Primeira Transação';
+  static const String firstTradeButton = 'Primeira Transação';
   static const String refreshTooltip = 'Atualizar';
-  static const String addTransactionTooltip = 'Adicionar transação';
+  static const String addTradeTooltip = 'Adicionar transação';
   static const String closeTooltip = 'Fechar';
 
   // Messages
-  static const String loadingTransactions = 'Carregando transações...';
+  static const String loadingTrades = 'Carregando transações...';
   static const String errorTitle = 'Ops! Algo deu errado';
-  static const String noTransactionsTitle = 'Nenhuma transação ainda';
-  static const String noTransactionsMessage =
+  static const String noTradesTitle = 'Nenhuma transação ainda';
+  static const String noTradesMessage =
       'Comece adicionando sua primeira transação\ntocando no botão + abaixo';
   static const String confirmDeleteTitle = 'Confirmar exclusão';
   static const String attentionTitle = 'Atenção';
@@ -52,7 +52,7 @@ class AppConstants {
   // Success Messages
   static const String expenseAddedSuccess = 'DESPESA adicionada com sucesso!';
   static const String incomeAddedSuccess = 'RECEITA adicionada com sucesso!';
-  static const String transactionRemovedSuccess =
+  static const String tradeRemovedSuccess =
       'Transação removida com sucesso!';
 
   // Validation Messages
@@ -77,8 +77,8 @@ class AppConstants {
 
   // Validation Constants
   static const int maxTitleLength = 100;
-  static const double maxTransactionValue = 999999999.99;
-  static const int recentTransactionsDays = 30;
+  static const double maxTradeValue = 999999999.99;
+  static const int recentTradesDays = 30;
 
   // UI Dimensions
   static const double defaultPadding = 16.0;
@@ -95,15 +95,15 @@ class AppConstants {
   // Text Sizes
   static const double balanceLabelFontSize = 16.0;
   static const double balanceValueFontSize = 32.0;
-  static const double transactionValueFontSize = 14.0;
+  static const double tradeValueFontSize = 14.0;
 
   // Animation Durations
   static const Duration snackBarDuration = Duration(seconds: 4);
   static const Duration successSnackBarDuration = Duration(seconds: 3);
 
   // Currency
-  static const String currencySymbol = 'R\$';
-  static const String currencyPrefix = 'R\$ ';
+  static const String currencySymbol = 'R\u0024';
+  static const String currencyPrefix = 'R\u0024 ';
 
   // Date Format
   static const String dateFormat = 'dd/MM/yyyy';

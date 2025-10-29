@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finanapp/services/database_service.dart';
-import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
+import 'package:finanapp/blocs/trade/trade_barrel.dart';
 import 'package:finanapp/utils/constants.dart';
 import 'package:finanapp/screens/home_screen.dart';
 
@@ -26,7 +26,7 @@ class FinanappApplication extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TransactionBloc()..add(const LoadTransactions()),
+      create: (context) => TradeBloc()..add(const LoadTrades()),
       child: MaterialApp(
         title: AppConstants.appName,
         theme: _buildAppTheme(),

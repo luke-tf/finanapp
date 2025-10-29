@@ -9,14 +9,14 @@ void main() {
   group('BalanceDisplay with Different States', () {
     testGoldens('BalanceDisplay with positive balance', (tester) async {
       // Calculate balance from our test data
-      final transactions = TestData.sampleTransactions;
+      final transactions = TestData.sampleTrades;
       final balance = transactions.fold<double>(
         0.0,
         (sum, tx) => tx.isExpense ? sum - tx.value : sum + tx.value,
       );
 
       final widget = createTestApp(
-        mockState: MockStates.withTransactions,
+        mockState: MockStates.withTrades,
         child: Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -40,7 +40,7 @@ void main() {
     });
 
     testGoldens('BalanceDisplay with negative balance', (tester) async {
-      final transactions = TestData.negativeBalanceTransactions;
+      final transactions = TestData.negativeBalanceTrades;
       final balance = transactions.fold<double>(
         0.0,
         (sum, tx) => tx.isExpense ? sum - tx.value : sum + tx.value,

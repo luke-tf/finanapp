@@ -1,9 +1,9 @@
 import 'package:hive/hive.dart';
 
-part 'transaction.g.dart';
+part 'trade.g.dart';
 
 @HiveType(typeId: 0)
-class Transaction extends HiveObject {
+class Trade extends HiveObject {
   @HiveField(0)
   late String title;
 
@@ -16,7 +16,7 @@ class Transaction extends HiveObject {
   @HiveField(3)
   late bool isExpense;
 
-  Transaction({
+  Trade({
     this.title = '',
     this.value = 0.0,
     DateTime? date,
@@ -25,6 +25,6 @@ class Transaction extends HiveObject {
 
   @override
   String toString() {
-    return 'Transaction(title: $title, value: $value, date: $date, isExpense: $isExpense)';
+    return 'Trade(title: $title, value: $value, date: $date, isExpense: $isExpense)';
   }
 }

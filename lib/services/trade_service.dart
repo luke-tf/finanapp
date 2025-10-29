@@ -1,68 +1,68 @@
 import 'package:finanapp/services/database_service.dart';
-import 'package:finanapp/models/transaction.dart';
+import 'package:finanapp/models/trade.dart';
 import 'package:finanapp/services/error_handler.dart';
 import 'package:finanapp/utils/constants.dart';
 
-class TransactionService {
+class TradeService {
   final DatabaseService _databaseService = DatabaseService();
 
-  // Get all transactions with proper error handling
-  Future<List<Transaction>> getAllTransactions() async {
+  // Get all trades with proper error handling
+  Future<List<Trade>> getAllTrades() async {
     try {
-      return await _databaseService.getAllTransactions();
+      return await _databaseService.getAllTrades();
     } catch (e) {
       throw ErrorHandler.handleException(e);
     }
   }
 
-  // Add a new transaction with comprehensive validation
-  Future<void> addTransaction({
+  // Add a new trade with comprehensive validation
+  Future<void> addTrade({
     required String title,
     required double value,
     required bool isExpense,
   }) async {
     try {
       // Input validation
-      _validateTransactionInput(title, value);
+      _validateTradeInput(title, value);
 
-      final transaction = Transaction(
+      final trade = Trade(
         title: title.trim(),
         value: value,
         date: DateTime.now(),
         isExpense: isExpense,
       );
 
-      await _databaseService.addTransaction(transaction);
+      await _databaseService.addTrade(trade);
     } catch (e) {
       throw ErrorHandler.handleException(e);
     }
   }
 
-  // Delete transaction with validation
-  Future<void> deleteTransaction(int key) async {
+  // Delete trade with validation
+  Future<void> deleteTrade(int key) async {
     try {
       if (key < 0) {
         throw const AppError(
-          message: 'ID da transação inválido',
+          message: 'ID da transação inválido', // TODO: Refactor this
           type: ErrorType.validation,
         );
       }
 
-      await _databaseService.deleteTransaction(key);
+      await _databaseService.deleteTrade(key);
     } catch (e) {
       throw ErrorHandler.handleException(e);
     }
   }
 
   // Calculate current balance (pure function - no errors expected)
-  double calculateBalance(List<Transaction> transactions) {
+  double calculateBalance(List<Trade> trades) {
     double totalBalance = 0.0;
 
-    for (final transaction in transactions) {
-      if (transaction.isExpense) {
-        totalBalance -= transaction.value;
+    for (final trade in trades) {
+      if (trade.isExpense) {
+        totalBalance -= trade.value;
       } else {
-        totalBalance += transaction.value;
+        totalBalance += trade.value;
       }
     }
 
@@ -81,21 +81,21 @@ class TransactionService {
   }
 
   // Get financial summary with error handling
-  Map<String, double> getFinancialSummary(List<Transaction> transactions) {
+  Map<String, double> getFinancialSummary(List<Trade> trades) {
     try {
       double totalIncome = 0.0;
       double totalExpenses = 0.0;
 
-      for (final transaction in transactions) {
+      for (final trade in trades) {
         // Additional validation
-        if (transaction.value < 0) {
-          continue; // Skip invalid transactions
+        if (trade.value < 0) {
+          continue; // Skip invalid trades
         }
 
-        if (transaction.isExpense) {
-          totalExpenses += transaction.value;
+        if (trade.isExpense) {
+          totalExpenses += trade.value;
         } else {
-          totalIncome += transaction.value;
+          totalIncome += trade.value;
         }
       }
 
@@ -110,23 +110,23 @@ class TransactionService {
     }
   }
 
-  // Get transactions filtered by type
-  List<Transaction> getTransactionsByType(
-    List<Transaction> transactions, {
+  // Get trades filtered by type
+  List<Trade> getTradesByType(
+    List<Trade> trades, {
     required bool isExpense,
   }) {
     try {
-      return transactions
-          .where((transaction) => transaction.isExpense == isExpense)
+      return trades
+          .where((trade) => trade.isExpense == isExpense)
           .toList();
     } catch (e) {
       return []; // Return empty list on error
     }
   }
 
-  // Get transactions from last N days
-  List<Transaction> getRecentTransactions(
-    List<Transaction> transactions, {
+  // Get trades from last N days
+  List<Trade> getRecentTrades(
+    List<Trade> trades, {
     int days = 30,
   }) {
     try {
@@ -138,8 +138,8 @@ class TransactionService {
       }
 
       final cutoffDate = DateTime.now().subtract(Duration(days: days));
-      return transactions
-          .where((transaction) => transaction.date.isAfter(cutoffDate))
+      return trades
+          .where((trade) => trade.date.isAfter(cutoffDate))
           .toList();
     } catch (e) {
       if (e is AppError) rethrow;
@@ -148,7 +148,7 @@ class TransactionService {
   }
 
   // Clear all data with confirmation
-  Future<void> clearAllTransactions() async {
+  Future<void> clearAllTrades() async {
     try {
       await _databaseService.clearAllData();
     } catch (e) {
@@ -156,23 +156,23 @@ class TransactionService {
     }
   }
 
-  Future<void> updateTransaction(Transaction transaction) async {
+  Future<void> updateTrade(Trade trade) async {
     try {
-      if (transaction.key == null) {
+      if (trade.key == null) {
         throw const AppError(
-          message: 'Transação inválida para atualização: chave ausente',
+          message: 'Transação inválida para atualização: chave ausente', // TODO: Refactor this
           type: ErrorType.validation,
         );
       }
-      _validateTransactionInput(transaction.title, transaction.value);
-      await _databaseService.updateTransaction(transaction);
+      _validateTradeInput(trade.title, trade.value);
+      await _databaseService.updateTrade(trade);
     } catch (e) {
       throw ErrorHandler.handleException(e);
     }
   }
 
   // Private validation method
-  void _validateTransactionInput(String title, double value) {
+  void _validateTradeInput(String title, double value) {
     final errors = <String>[];
 
     // Title validation
@@ -185,7 +185,7 @@ class TransactionService {
     // Value validation
     if (value <= 0) {
       errors.add('O valor deve ser maior que zero');
-    } else if (value > AppConstants.maxTransactionValue) {
+    } else if (value > AppConstants.maxTradeValue) { 
       errors.add('O valor é muito alto');
     }
 

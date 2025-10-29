@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
-import 'package:finanapp/widgets/transaction/transaction_item.dart';
+import 'package:finanapp/widgets/trade/trade_item.dart';
 
 void main() {
-  group('TransactionItem Modified Tests', () {
-    testGoldens('TransactionItem - Expense with CHANGES', (tester) async {
+  group('TradeItem Modified Tests', () {
+    testGoldens('TradeItem - Expense with CHANGES', (tester) async {
       final widget = MaterialApp(
         home: Scaffold(
           backgroundColor: Colors.grey[50], // 👈 CHANGE 1: Added background
@@ -17,7 +17,7 @@ void main() {
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                   ), // 👈 CHANGE 3: Extra margin
-                  child: TransactionItem(
+                  child: TradeItem(
                     id: 1,
                     title: 'Supermercado Extra',
                     value: 150.75,
@@ -36,10 +36,10 @@ void main() {
       await tester.pumpWidgetBuilder(widget, surfaceSize: const Size(400, 200));
 
       // 👈 IMPORTANT: Using the SAME golden file name as before
-      await screenMatchesGolden(tester, 'transaction_item_expense');
+      await screenMatchesGolden(tester, 'trade_item_expense');
     });
 
-    testGoldens('TransactionItem - Income with CHANGES', (tester) async {
+    testGoldens('TradeItem - Income with CHANGES', (tester) async {
       final widget = MaterialApp(
         theme: ThemeData(
           // 👈 CHANGE 4: Different theme colors
@@ -48,7 +48,7 @@ void main() {
         home: Scaffold(
           body: ListView(
             children: [
-              TransactionItem(
+              TradeItem(
                 id: 2,
                 title: 'Salário Janeiro',
                 value: 3500.00,
@@ -65,7 +65,7 @@ void main() {
       await tester.pumpWidgetBuilder(widget, surfaceSize: const Size(400, 200));
 
       // 👈 IMPORTANT: Using the SAME golden file name as before
-      await screenMatchesGolden(tester, 'transaction_item_income');
+      await screenMatchesGolden(tester, 'trade_item_income');
     });
   });
 }

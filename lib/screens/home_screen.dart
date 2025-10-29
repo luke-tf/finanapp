@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:finanapp/services/transaction_service.dart';
-import 'package:finanapp/widgets/transaction/new_transaction_form.dart';
-import 'package:finanapp/widgets/transaction/transaction_list.dart';
-import 'package:finanapp/widgets/transaction/empty_transactions_widget.dart';
+import 'package:finanapp/services/trade_service.dart';
+import 'package:finanapp/widgets/trade/new_trade_form.dart';
+import 'package:finanapp/widgets/trade/trade_list.dart';
+import 'package:finanapp/widgets/trade/empty_trades_widget.dart';
 import 'package:finanapp/widgets/balance/balance_display.dart';
 import 'package:finanapp/widgets/common/loading_widget.dart';
 import 'package:finanapp/widgets/error/error_display_widget.dart';
-import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
+import 'package:finanapp/blocs/trade/trade_barrel.dart';
 import 'package:finanapp/services/error_handler.dart';
 import 'package:finanapp/utils/constants.dart';
-import 'package:finanapp/screens/edit_transaction_screen.dart';
+import 'package:finanapp/screens/edit_trade_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,33 +21,33 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   // Create service instance once to avoid repeated instantiation
-  late final TransactionService _transactionService;
+  late final TradeService _tradeService;
 
   @override
   void initState() {
     super.initState();
-    _transactionService = TransactionService();
+    _tradeService = TradeService();
   }
 
-  void _deleteTransaction(int key) {
-    context.read<TransactionBloc>().add(DeleteTransaction(key: key));
+  void _deleteTrade(int key) {
+    context.read<TradeBloc>().add(DeleteTrade(key: key));
   }
 
-  void _editTransaction(int key) {
-    print('Edit transaction with key: $key');
+  void _editTrade(int key) {
+    print('Edit trade with key: $key');
 
-    final state = context.read<TransactionBloc>().state;
-    if (state is TransactionLoaded) {
+    final state = context.read<TradeBloc>().state;
+    if (state is TradeLoaded) {
       try {
-        final transactionToEdit = state.displayTransactions.firstWhere(
+        final tradeToEdit = state.displayTrades.firstWhere(
           (tx) => tx.key == key,
         );
 
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (ctx) => BlocProvider.value(
-              value: context.read<TransactionBloc>(),
-              child: EditTransactionScreen(transaction: transactionToEdit),
+              value: context.read<TradeBloc>(),
+              child: EditTradeScreen(trade: tradeToEdit),
             ),
           ),
         );
@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ErrorHandler.showErrorSnackBar(
             context,
             const AppError(
-              message: 'Transaction not found. It may have been deleted.',
+              message: 'Trade not found. It may have been deleted.',
               type: ErrorType.unknown,
             ),
           );
@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showTransactionForm() {
+  void _showTradeForm() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -76,24 +76,24 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       builder: (BuildContext modalContext) {
         return BlocProvider.value(
-          value: context.read<TransactionBloc>(),
-          child: const NewTransactionForm(),
+          value: context.read<TradeBloc>(),
+          child: const NewTradeForm(),
         );
       },
     );
   }
 
   void _onRefresh() {
-    context.read<TransactionBloc>().add(const RefreshTransactions());
+    context.read<TradeBloc>().add(const RefreshTrades());
   }
 
   void _onRetryLoad() {
-    context.read<TransactionBloc>().add(const LoadTransactions());
+    context.read<TradeBloc>().add(const LoadTrades());
   }
 
   // Extract balance calculation logic to avoid duplication
-  double _calculateBalance(List<dynamic> transactions) {
-    return transactions.fold<double>(
+  double _calculateBalance(List<dynamic> trades) {
+    return trades.fold<double>(
       0.0,
       (sum, tx) => tx.isExpense ? sum - tx.value : sum + tx.value,
     );
@@ -115,15 +115,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: BlocListener<TransactionBloc, TransactionState>(
+      body: BlocListener<TradeBloc, TradeState>(
         listener: (context, state) {
-          if (state is TransactionOperationSuccess) {
+          if (state is TradeOperationSuccess) {
             ErrorHandler.showSuccessSnackBar(context, state.message);
-          } else if (state is TransactionError) {
+          } else if (state is TradeError) {
             ErrorHandler.showErrorSnackBar(context, state.error);
           }
         },
-        child: BlocBuilder<TransactionBloc, TransactionState>(
+        child: BlocBuilder<TradeBloc, TradeState>(
           builder: (context, state) {
             return _buildBody(state);
           },
@@ -133,26 +133,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBody(TransactionState state) {
-    if (state is TransactionLoading) {
+  Widget _buildBody(TradeState state) {
+    if (state is TradeLoading) {
       return const LoadingWidget();
     }
 
-    if (state is TransactionError) {
+    if (state is TradeError) {
       return ErrorDisplayWidget(error: state.error, onRetry: _onRetryLoad);
     }
 
-    if (state is TransactionLoaded || state is TransactionOperationSuccess) {
-      final transactions = state is TransactionLoaded
-          ? state.displayTransactions
-          : (state as TransactionOperationSuccess).transactions;
+    if (state is TradeLoaded || state is TradeOperationSuccess) {
+      final trades = state is TradeLoaded
+          ? state.displayTrades
+          : (state as TradeOperationSuccess).trades;
 
-      final currentBalance = state is TransactionLoaded
+      final currentBalance = state is TradeLoaded
           ? state.currentBalance
-          : _calculateBalance(transactions);
+          : _calculateBalance(trades);
 
       // Get balance image path directly - cleaner approach
-      final balanceImagePath = _transactionService.getBalanceImagePath(
+      final balanceImagePath = _tradeService.getBalanceImagePath(
         currentBalance,
       );
 
@@ -169,14 +169,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: AppConstants.getResponsivePadding(context)),
               Expanded(
-                child: transactions.isNotEmpty
-                    ? TransactionList(
-                        transactions: transactions,
-                        deleteTx: _deleteTransaction,
-                        editTx: _editTransaction,
+                child: trades.isNotEmpty
+                    ? TradeList(
+                        trades: trades,
+                        deleteTx: _deleteTrade,
+                        editTx: _editTrade,
                       )
-                    : EmptyTransactionsWidget(
-                        onAddTransaction: _showTransactionForm,
+                    : EmptyTradesWidget(
+                        onAddTrade: _showTradeForm,
                       ),
               ),
             ],
@@ -190,15 +190,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFloatingActionButton() {
-    return BlocBuilder<TransactionBloc, TransactionState>(
+    return BlocBuilder<TradeBloc, TradeState>(
       builder: (context, state) {
-        final isAddingTransaction =
-            state is TransactionLoaded && state.isAddingTransaction;
+        final isAddingTrade =
+            state is TradeLoaded && state.isAddingTrade;
 
         return FloatingActionButton(
-          onPressed: isAddingTransaction ? null : _showTransactionForm,
-          tooltip: AppConstants.addTransactionTooltip,
-          child: isAddingTransaction
+          onPressed: isAddingTrade ? null : _showTradeForm,
+          tooltip: AppConstants.addTradeTooltip,
+          child: isAddingTrade
               ? const SizedBox(
                   width: 20,
                   height: 20,

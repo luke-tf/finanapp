@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:finanapp/models/transaction.dart';
+import 'package:finanapp/models/trade.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
 class DatabaseService {
-  static Box<Transaction>? _transactionBox;
+  static Box<Trade>? _tradeBox;
   static bool _isInitialized = false;
 
   static final DatabaseService _instance = DatabaseService._internal();
@@ -16,7 +16,7 @@ class DatabaseService {
   DatabaseService._internal();
 
   Future<void> initialize() async {
-    if (_isInitialized && _transactionBox != null && _transactionBox!.isOpen) {
+    if (_isInitialized && _tradeBox != null && _tradeBox!.isOpen) {
       return; // Já foi inicializado
     }
 
@@ -36,16 +36,16 @@ class DatabaseService {
 
       // Registra o adapter apenas uma vez
       if (!Hive.isAdapterRegistered(0)) {
-        Hive.registerAdapter(TransactionAdapter());
+        Hive.registerAdapter(TradeAdapter());
       }
 
       // Fecha o box se estiver aberto para reabrir
-      if (_transactionBox?.isOpen == true) {
-        await _transactionBox!.close();
+      if (_tradeBox?.isOpen == true) {
+        await _tradeBox!.close();
       }
 
       // Abre o box
-      _transactionBox = await Hive.openBox<Transaction>('transactions');
+      _tradeBox = await Hive.openBox<Trade>('trades');
       _isInitialized = true;
 
       print('DatabaseService inicializado com sucesso.');
@@ -56,22 +56,22 @@ class DatabaseService {
     }
   }
 
-  Box<Transaction> get _box {
+  Box<Trade> get _box {
     if (!_isInitialized ||
-        _transactionBox == null ||
-        !_transactionBox!.isOpen) {
+        _tradeBox == null ||
+        !_tradeBox!.isOpen) {
       throw Exception('Database not initialized. Call initialize() first.');
     }
-    return _transactionBox!;
+    return _tradeBox!;
   }
 
-  Future<List<Transaction>> getAllTransactions() async {
+  Future<List<Trade>> getAllTrades() async {
     try {
-      final transactions = _box.values.toList();
+      final trades = _box.values.toList();
 
       // Filtra transações com dados válidos
-      return transactions.where((transaction) {
-        return transaction.title.isNotEmpty && transaction.value >= 0;
+      return trades.where((trade) {
+        return trade.title.isNotEmpty && trade.value >= 0;
       }).toList();
     } catch (e) {
       print('Erro ao buscar transações: $e');
@@ -79,44 +79,44 @@ class DatabaseService {
     }
   }
 
-  Future<void> addTransaction(Transaction transaction) async {
+  Future<void> addTrade(Trade trade) async {
     try {
       // Validações antes de adicionar
-      if (transaction.title.isEmpty) {
+      if (trade.title.isEmpty) {
         throw Exception('Título não pode estar vazio');
       }
-      if (transaction.value < 0) {
+      if (trade.value < 0) {
         throw Exception('Valor não pode ser negativo');
       }
 
-      await _box.add(transaction);
-      print('Transação adicionada: ${transaction.title}');
+      await _box.add(trade);
+      print('Transação adicionada: ${trade.title}');
     } catch (e) {
       print('Erro ao adicionar transação: $e');
       rethrow;
     }
   }
 
-  Future<void> updateTransaction(Transaction transaction) async {
+  Future<void> updateTrade(Trade trade) async {
     try {
       // Validações antes de atualizar
-      if (transaction.key == null) {
+      if (trade.key == null) {
         throw Exception('Transação com key nula não pode ser atualizada');
       }
-      if (transaction.title.isEmpty) {
+      if (trade.title.isEmpty) {
         throw Exception('Título não pode estar vazio');
       }
 
       // O método 'put' do Hive insere se a chave não existe ou atualiza se ela já existe.
-      await _box.put(transaction.key, transaction);
-      print('Transação atualizada: ${transaction.title}');
+      await _box.put(trade.key, trade);
+      print('Transação atualizada: ${trade.title}');
     } catch (e) {
       print('Erro ao atualizar transação: $e');
       rethrow;
     }
   }
 
-  Future<void> deleteTransaction(int key) async {
+  Future<void> deleteTrade(int key) async {
     try {
       if (key < 0) {
         throw Exception('Key inválida para deletar');

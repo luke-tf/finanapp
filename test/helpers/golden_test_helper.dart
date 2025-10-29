@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:finanapp/models/transaction.dart';
-import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
+import 'package:finanapp/models/trade.dart';
+import 'package:finanapp/blocs/trade/trade_barrel.dart';
 import 'package:finanapp/services/error_handler.dart';
 import 'package:finanapp/utils/constants.dart';
 
 // Mock BLoC for testing
-class MockTransactionBloc extends Mock implements TransactionBloc {}
+class MockTradeBloc extends Mock implements TradeBloc {}
 
-// Test data - same transactions every time for consistent golden images
+// Test data - same trades every time for consistent golden images
 class TestData {
-  static List<Transaction> get sampleTransactions => [
-    Transaction(
+  static List<Trade> get sampleTrades => [
+    Trade(
       title: 'Supermercado Extra',
       value: 150.75,
       date: DateTime(2024, 1, 15), // Fixed date for consistent tests
       isExpense: true,
     ),
-    Transaction(
+    Trade(
       title: 'Salário Janeiro',
       value: 3500.00,
       date: DateTime(2024, 1, 1),
       isExpense: false,
     ),
-    Transaction(
+    Trade(
       title: 'Conta de Luz',
       value: 89.50,
       date: DateTime(2024, 1, 10),
@@ -32,16 +32,16 @@ class TestData {
     ),
   ];
 
-  static List<Transaction> get emptyTransactions => [];
+  static List<Trade> get emptyTrades => [];
 
-  static List<Transaction> get negativeBalanceTransactions => [
-    Transaction(
+  static List<Trade> get negativeBalanceTrades => [
+    Trade(
       title: 'Carro Novo',
       value: 5000.00,
       date: DateTime(2024, 1, 5),
       isExpense: true,
     ),
-    Transaction(
+    Trade(
       title: 'Salário',
       value: 2000.00,
       date: DateTime(2024, 1, 1),
@@ -53,14 +53,14 @@ class TestData {
 // Helper to create a test app with mock BLoC
 Widget createTestApp({
   required Widget child,
-  required TransactionState mockState,
+  required TradeState mockState,
 }) {
-  final mockBloc = MockTransactionBloc();
+  final mockBloc = MockTradeBloc();
 
   // Setup the mock to return our test state
   when(() => mockBloc.state).thenReturn(mockState);
 
-  return BlocProvider<TransactionBloc>.value(
+  return BlocProvider<TradeBloc>.value(
     value: mockBloc,
     child: MaterialApp(
       title: AppConstants.appName,
@@ -88,26 +88,26 @@ Widget createTestApp({
 
 // Helper to create different BLoC states for testing
 class MockStates {
-  static TransactionLoaded get withTransactions =>
-      TransactionLoaded(transactions: TestData.sampleTransactions);
+  static TradeLoaded get withTrades =>
+      TradeLoaded(trades: TestData.sampleTrades);
 
-  static TransactionLoaded get empty =>
-      const TransactionLoaded(transactions: []);
+  static TradeLoaded get empty =>
+      const TradeLoaded(trades: []);
 
-  static TransactionLoaded get negativeBalance =>
-      TransactionLoaded(transactions: TestData.negativeBalanceTransactions);
+  static TradeLoaded get negativeBalance =>
+      TradeLoaded(trades: TestData.negativeBalanceTrades);
 
-  static TransactionLoading get loading => const TransactionLoading();
+  static TradeLoading get loading => const TradeLoading();
 
-  static TransactionError get error => const TransactionError(
+  static TradeError get error => const TradeError(
     error: AppError(
-      message: 'Failed to load transactions',
+      message: 'Failed to load trades',
       type: ErrorType.database,
     ),
   );
 
-  static TransactionLoaded get addingTransaction => TransactionLoaded(
-    transactions: TestData.sampleTransactions,
-    isAddingTransaction: true,
+  static TradeLoaded get addingTrade => TradeLoaded(
+    trades: TestData.sampleTrades,
+    isAddingTrade: true,
   );
 }

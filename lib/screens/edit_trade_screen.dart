@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:finanapp/blocs/transaction/transaction_barrel.dart';
-import 'package:finanapp/models/transaction.dart';
+import 'package:finanapp/blocs/trade/trade_barrel.dart';
+import 'package:finanapp/models/trade.dart';
 import 'package:finanapp/utils/constants.dart';
 
-class EditTransactionScreen extends StatefulWidget {
-  final Transaction transaction;
-  const EditTransactionScreen({super.key, required this.transaction});
+class EditTradeScreen extends StatefulWidget {
+  final Trade trade;
+  const EditTradeScreen({super.key, required this.trade});
 
   @override
-  State<EditTransactionScreen> createState() => _EditTransactionScreenState();
+  State<EditTradeScreen> createState() => _EditTradeScreenState();
 }
 
-class _EditTransactionScreenState extends State<EditTransactionScreen> {
+class _EditTradeScreenState extends State<EditTradeScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _valueController;
@@ -25,12 +25,12 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.transaction.title);
+    _titleController = TextEditingController(text: widget.trade.title);
     _valueController = TextEditingController(
-      text: widget.transaction.value.toStringAsFixed(2),
+      text: widget.trade.value.toStringAsFixed(2),
     );
-    _isExpense = widget.transaction.isExpense;
-    _selectedDate = widget.transaction.date; // Initialize with existing date
+    _isExpense = widget.trade.isExpense;
+    _selectedDate = widget.trade.date; // Initialize with existing date
   }
 
   @override
@@ -62,17 +62,17 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       return;
     }
 
-    // CORRECTED: Update the properties of the *existing* widget.transaction object
+    // CORRECTED: Update the properties of the *existing* widget.trade object
     // directly. Hive will then use its key to find and update it in the box.
-    widget.transaction.title = enteredTitle;
-    widget.transaction.value = enteredValue;
-    widget.transaction.isExpense = _isExpense;
-    widget.transaction.date =
+    widget.trade.title = enteredTitle;
+    widget.trade.value = enteredValue;
+    widget.trade.isExpense = _isExpense;
+    widget.trade.date =
         _selectedDate; // Update the date as well, even if not editing it yet
 
     // Dispatch BLoC event instead of using Provider
-    context.read<TransactionBloc>().add(
-      UpdateTransaction(transaction: widget.transaction),
+    context.read<TradeBloc>().add(
+      UpdateTrade(trade: widget.trade),
     );
   }
 
@@ -118,17 +118,17 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<TransactionBloc, TransactionState>(
+    return BlocListener<TradeBloc, TradeState>(
       listener: (context, state) {
         // The listener in main.dart will show the snackbar.
         // We just need to handle navigation and local state.
-        if (state is TransactionOperationSuccess &&
-            state.operationType == TransactionOperationType.update) {
+        if (state is TradeOperationSuccess &&
+            state.operationType == TradeOperationType.update) {
           if (mounted) {
             // Pop the screen on success.
             Navigator.of(context).pop();
           }
-        } else if (state is TransactionError) {
+        } else if (state is TradeError) {
           // If an error occurs, reset the saving state to re-enable the form.
           if (mounted && _isSaving) {
             setState(() {
@@ -242,7 +242,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                                 return AppConstants.valueZeroError;
                               }
                               if (doubleValue >
-                                  AppConstants.maxTransactionValue) {
+                                  AppConstants.maxTradeValue) {
                                 return AppConstants.valueTooHighError;
                               }
                               return null;
@@ -281,7 +281,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppConstants.transactionTypeLabel,
+                            AppConstants.tradeTypeLabel,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),

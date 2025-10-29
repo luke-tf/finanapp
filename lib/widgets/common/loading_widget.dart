@@ -14,7 +14,7 @@ class LoadingWidget extends StatelessWidget {
         children: [
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
-          Text(message ?? AppConstants.loadingTransactions),
+          Text(message ?? AppConstants.loadingTrades),
         ],
       ),
     );

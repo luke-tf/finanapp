@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:finanapp/utils/constants.dart';
 
-class TransactionItem extends StatelessWidget {
+class TradeItem extends StatelessWidget {
   final int id;
   final String title;
   final double value;
@@ -11,7 +11,7 @@ class TransactionItem extends StatelessWidget {
   final Function(int) deleteTx;
   final Function(int) editTx; // Added edit callback
 
-  const TransactionItem({
+  const TradeItem({
     super.key,
     required this.id,
     required this.title,
@@ -102,7 +102,7 @@ class TransactionItem extends StatelessWidget {
                 style: TextStyle(
                   color: valueColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: AppConstants.transactionValueFontSize,
+                  fontSize: AppConstants.tradeValueFontSize,
                 ),
               ),
               SizedBox(width: AppConstants.smallPadding),

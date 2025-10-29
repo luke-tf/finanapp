@@ -192,7 +192,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 If you encounter any issues or have questions:
 - Open an issue on GitHub
-- Check [SPECIFICATIONS.md](SPECIFICATIONS.md) for technical details
 - Review the troubleshooting section in the specifications
 
 ---
